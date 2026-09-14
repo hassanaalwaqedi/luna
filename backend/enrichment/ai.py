@@ -99,7 +99,7 @@ class GeminiClient:
     def chat(
         self,
         messages: List[Dict[str, str]],
-        model: str = "gemini-3.8-flash",
+        model: str = "gemini-1.5-flash",
         temperature: float = 0.7,
         max_tokens: int = 1200,
     ) -> str:
