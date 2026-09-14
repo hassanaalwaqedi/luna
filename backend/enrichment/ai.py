@@ -99,7 +99,7 @@ class GeminiClient:
     def chat(
         self,
         messages: List[Dict[str, str]],
-        model: str = "gemini-3.8-flash",
+        model: str = "gemini-1.5-flash",
         temperature: float = 0.7,
         max_tokens: int = 1200,
     ) -> str:
@@ -125,16 +125,24 @@ class GeminiClient:
             }
         }
 
-        response = self._session.post(url, json=payload, timeout=60)
-        try:
-            response.raise_for_status()
-        except requests.HTTPError:
-            raise
-            
-        data = response.json()
-        if "candidates" in data and len(data["candidates"]) > 0:
-            return data["candidates"][0]["content"]["parts"][0]["text"]
-        return ""
+        max_retries = 3
+        base_delay = 2.0
+        
+        for attempt in range(max_retries):
+            response = self._session.post(url, json=payload, timeout=60)
+            try:
+                response.raise_for_status()
+                data = response.json()
+                if "candidates" in data and len(data["candidates"]) > 0:
+                    return data["candidates"][0]["content"]["parts"][0]["text"]
+                return ""
+            except requests.HTTPError as e:
+                if response.status_code in (429, 503):
+                    if attempt < max_retries - 1:
+                        # Exponential backoff
+                        time.sleep(base_delay * (2 ** attempt))
+                        continue
+                raise
 
 
 
