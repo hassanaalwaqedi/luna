@@ -304,7 +304,11 @@ class Settings(BaseSettings):
     )
     app_base_url: str = Field(
         default="http://localhost:5173",
-        description="Application base URL for constructing the redirect URI",
+        description="Frontend base URL for CORS and redirects",
+    )
+    firebase_credentials_json: Optional[str] = Field(
+        default=None,
+        description="Optional raw JSON string for Firebase credentials",
     )
 
     # ---- Authentication (single-operator) -----------------------------------

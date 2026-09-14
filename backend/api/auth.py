@@ -351,7 +351,16 @@ async def firebase_login(body: FirebaseLoginRequest, response: Response):
     # Initialize Firebase Admin SDK if not already done
     try:
         if not firebase_admin._apps:
-            firebase_admin.initialize_app()
+            from core.config import get_settings
+            from firebase_admin import credentials
+            import json
+            
+            app_settings = get_settings()
+            if app_settings.firebase_credentials_json:
+                cert = credentials.Certificate(json.loads(app_settings.firebase_credentials_json))
+                firebase_admin.initialize_app(cert)
+            else:
+                firebase_admin.initialize_app()
     except Exception as e:
         logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
         raise HTTPException(status_code=500, detail="Authentication server configuration error.")
