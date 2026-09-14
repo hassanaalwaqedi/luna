@@ -355,12 +355,18 @@ async def firebase_login(body: FirebaseLoginRequest, response: Response):
             from firebase_admin import credentials
             import json
             
+            import re
             app_settings = get_settings()
             if app_settings.firebase_project_id and app_settings.firebase_private_key and app_settings.firebase_client_email:
+                raw_key = app_settings.firebase_private_key.replace("\\n", "\n")
+                # Aggressively extract just the PEM block in case the user pasted extra JSON syntax or quotes
+                pem_match = re.search(r'(-----BEGIN PRIVATE KEY-----.*?-----END PRIVATE KEY-----)', raw_key, re.DOTALL)
+                clean_key = pem_match.group(1) if pem_match else raw_key
+                
                 cert_dict = {
                     "type": "service_account",
                     "project_id": app_settings.firebase_project_id.strip('"'),
-                    "private_key": app_settings.firebase_private_key.strip('"').replace("\\n", "\n"),
+                    "private_key": clean_key,
                     "client_email": app_settings.firebase_client_email.strip('"'),
                     "token_uri": "https://oauth2.googleapis.com/token"
                 }
