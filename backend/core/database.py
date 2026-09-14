@@ -389,6 +389,21 @@ def get_distinct_niches() -> List[str]:
         return [r["niche"] for r in rows]
 
 
+def count_recent_successful_scans(user_id: str, hours: int = 24) -> int:
+    """Return the number of successful pipeline runs for a user in the last X hours."""
+    with get_connection() as conn:
+        row = conn.execute(
+            """SELECT COUNT(*) as count 
+               FROM pipeline_runs 
+               WHERE triggered_by = ? 
+                 AND status = 'completed' 
+                 AND videos_ingested > 0 
+                 AND started_at >= datetime('now', ?)""",
+            (user_id, f"-{hours} hours")
+        ).fetchone()
+        return row["count"] if row else 0
+
+
 def get_pipeline_history(limit: int = 10) -> List[Dict[str, Any]]:
     """Return the most recent pipeline run records."""
     with get_connection() as conn:

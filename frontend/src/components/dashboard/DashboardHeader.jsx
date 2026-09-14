@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function DashboardHeader({ refreshing, onRefresh, onOpenPipeline, onSearch }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [query, setQuery] = useState('');
   const username = user?.username || 'Admin';
@@ -14,8 +16,8 @@ export default function DashboardHeader({ refreshing, onRefresh, onOpenPipeline,
   return (
     <header className="dash-header">
       <div className="dash-heading-copy">
-        <h1>Good morning, {username} <span aria-hidden="true">👋</span></h1>
-        <p>Here&apos;s what&apos;s <strong>trending</strong> across the internet right now.</p>
+        <h1>{t('goodMorning')}, {username} <span aria-hidden="true">👋</span></h1>
+        <p>{t('whatsTrending')}</p>
       </div>
       <div className="dash-header-tools">
         <form className="dash-search" onSubmit={handleSubmit} role="search">
@@ -23,8 +25,8 @@ export default function DashboardHeader({ refreshing, onRefresh, onOpenPipeline,
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search for trends, topics, creators..."
-            aria-label="Search for trends, topics, creators"
+            placeholder={t('searchPlaceholder')}
+            aria-label={t('searchPlaceholder')}
           />
           <kbd>/</kbd>
         </form>
@@ -40,12 +42,10 @@ export default function DashboardHeader({ refreshing, onRefresh, onOpenPipeline,
       <div className="dash-header-actions">
         <button className="dash-action-button" onClick={onRefresh} disabled={refreshing}>
           <span aria-hidden="true">↻</span>
-          {refreshing ? 'Refreshing' : 'Refresh'}
+          {refreshing ? t('refreshing') : t('refresh')}
         </button>
         <button className="dash-action-button dash-pipeline-button" onClick={onOpenPipeline}>
-          <span aria-hidden="true">🚀</span>
-          Pipeline
-        </button>
+          <span aria-hidden="true">🚀</span>{t('pipeline')}</button>
       </div>
     </header>
   );

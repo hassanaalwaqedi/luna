@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { connectorSummary, formatRelativeTime } from './pipelineUtils';
 
 function StatusItem({ label, value, tone = '', detail, onClick }) {
@@ -6,6 +7,7 @@ function StatusItem({ label, value, tone = '', detail, onClick }) {
 }
 
 export default function PipelineStatusBar({ config, connectors, stats, lastRun, apiOnline, onReset, onSavePreset, onToggleConfig, configVisible, onOpenConnectors }) {
+  const { t } = useTranslation();
   const health = connectorSummary(connectors);
   const activePlatforms = config.platforms.length ? config.platforms.map((platform) => platform[0].toUpperCase() + platform.slice(1)).join(', ') : 'None selected';
   return (
@@ -18,8 +20,8 @@ export default function PipelineStatusBar({ config, connectors, stats, lastRun, 
         <StatusItem label="API status" value={apiOnline ? 'Operational' : 'Unavailable'} tone={apiOnline ? 'good' : 'danger'} />
       </div>
       <div className="pi-status-actions">
-        <button type="button" onClick={onReset}>↻ Reset</button>
-        <button type="button" onClick={onSavePreset}>▣ Save Preset</button>
+        <button type="button" onClick={onReset}>↻ {t('reset')}</button>
+        <button type="button" onClick={onSavePreset}>▣ {t('savePreset')}</button>
         <button type="button" onClick={onToggleConfig}>{configVisible ? '⌃ Hide Config' : '⌄ Show Config'}</button>
       </div>
     </section>

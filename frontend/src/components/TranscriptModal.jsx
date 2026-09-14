@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 const DEFAULT_THUMBNAIL = 'https://via.placeholder.com/320x180.png?text=No+Thumbnail';
 
 export default function TranscriptModal({ video, data, loading, error, onClose }) {
+  const { t } = useTranslation();
   if (!loading && !error && !data) return null;
 
   return (
@@ -10,15 +12,14 @@ export default function TranscriptModal({ video, data, loading, error, onClose }
         {/* Loading State */}
         {loading && (
           <div className="loading" style={{ padding: '3rem' }}>
-            <div className="spinner"></div>Fetching transcript...
-          </div>
+            <div className="spinner"></div>{t('fetchingTranscript')}</div>
         )}
 
         {/* Error State */}
         {error && (
           <>
             <div className="transcript-modal-header">
-              <h3 className="transcript-modal-title">Transcript Unavailable</h3>
+              <h3 className="transcript-modal-title">{t('transcriptUnavailable')}</h3>
               <button className="transcript-modal-close" onClick={onClose}>✕</button>
             </div>
             <div className="transcript-error">
@@ -43,7 +44,7 @@ export default function TranscriptModal({ video, data, loading, error, onClose }
                 <div className="tm-video-info">
                   <h3 className="tm-video-title">{video.title || 'Untitled'}</h3>
                   <p className="tm-video-channel">{video.channel || 'Unknown channel'}</p>
-                  {data.cached && <span className="badge badge-green">Cached</span>}
+                  {data.cached && <span className="badge badge-green">{t('cached')}</span>}
                 </div>
                 <button className="transcript-modal-close" onClick={onClose}>✕</button>
               </div>
@@ -53,7 +54,7 @@ export default function TranscriptModal({ video, data, loading, error, onClose }
               <div className="transcript-modal-header">
                 <h3 className="transcript-modal-title">
                   📝 Video Transcript
-                  {data.cached && <span className="badge badge-green" style={{ marginLeft: 8 }}>Cached</span>}
+                  {data.cached && <span className="badge badge-green" style={{ marginLeft: 8 }}>{t('cached')}</span>}
                 </h3>
                 <button className="transcript-modal-close" onClick={onClose}>✕</button>
               </div>

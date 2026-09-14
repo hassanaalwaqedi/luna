@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
@@ -16,6 +17,7 @@ import './TopVideos.css';
 const DEFAULT_GLOBAL_FILTERS = { region: '', category: '', content_type: '' };
 
 export default function TopVideos() {
+  const { t } = useTranslation();
   const { datasetId, activeDataset } = useDataset();
   const [searchParams, setSearchParams] = useSearchParams();
   const trendFilter = searchParams.get('trend') || '';
@@ -187,12 +189,12 @@ export default function TopVideos() {
         minScore={minScore} onMinScoreChange={setMinScore} viewMode={viewMode} onViewModeChange={setViewMode}
         sortMode={sortMode} onSortModeChange={setSortMode} trendFilter={trendFilter} onClearTrend={clearTrendFilter} onReset={resetFilters}
       />
-      {requestError && <div className="tc-error-banner">⚠ {requestError} <button onClick={loadVideos}>Try again</button></div>}
+      {requestError && <div className="tc-error-banner">⚠ {requestError} <button onClick={loadVideos}>{t('tryAgain')}</button></div>}
       <div className="tc-content-layout">
         <main className="tc-content-main">
           {featuredVideo && !loading && <FeaturedContentCard video={featuredVideo} onGenerate={setGenerateVideo} onTranscript={handleTranscript} />}
           <section className="tc-discovery-section">
-            <div className="tc-discovery-heading"><div><h2>Top performing content</h2><span>{filteredVideos.length.toLocaleString()} results</span></div><p>Ranked by {sortMode === 'score' ? 'AI score' : sortMode}</p></div>
+            <div className="tc-discovery-heading"><div><h2>{t('topPerformingContent')}</h2><span>{filteredVideos.length.toLocaleString()} results</span></div><p>Ranked by {sortMode === 'score' ? 'AI score' : sortMode}</p></div>
             <ContentDiscoveryGrid videos={discoveryVideos} viewMode={viewMode} loading={loading} onGenerate={setGenerateVideo} onTranscript={handleTranscript} />
           </section>
         </main>

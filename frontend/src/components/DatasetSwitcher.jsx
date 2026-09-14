@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { useDataset } from '../context/DatasetContext';
 
 export default function DatasetSwitcher() {
+  const { t } = useTranslation();
   const { activeDataset, datasetStats, datasets, switchDataset, loading, datasetId, setAllData, allData } = useDataset();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -49,11 +51,9 @@ export default function DatasetSwitcher() {
 
       {open && (
         <div className="dataset-switcher-dropdown">
-          <div className="dataset-switcher-dropdown-header">Workspace Datasets</div>
+          <div className="dataset-switcher-dropdown-header">{t('workspaceDatasets')}</div>
           {datasets.length === 0 && (
-            <div className="dataset-switcher-empty">
-              No completed pipeline runs yet.
-            </div>
+            <div className="dataset-switcher-empty">{t('noCompletedPipelineRunsYet')}</div>
           )}
           <button
             className={`dataset-switcher-item ${datasetId === null ? 'active' : ''}`}

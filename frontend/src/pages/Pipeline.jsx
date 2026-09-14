@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
@@ -19,6 +20,7 @@ import {
 import './Pipeline.css';
 
 export default function Pipeline() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [config, setConfig] = useState(DEFAULT_PIPELINE_CONFIG);
   const [history, setHistory] = useState([]);
@@ -50,7 +52,7 @@ export default function Pipeline() {
       return data.runs || [];
     } catch (error) {
       console.error('Unable to load pipeline history:', error);
-      setMessage((current) => current?.type === 'error' ? current : { type: 'error', text: 'Unable to refresh pipeline history.' });
+      setMessage((current) => current?.type === 'error' ? current : { type: 'error', text: t('errRefreshHistory') });
       return [];
     } finally {
       if (withLoading) setHistoryLoading(false);
@@ -156,9 +158,9 @@ export default function Pipeline() {
 
   const addKeyword = (value = keywordInput) => {
     const keyword = String(value || '').trim().replace(/[^\w\s-]/g, '');
-    if (!keyword) { setKeywordError('Enter a signal before adding it.'); return; }
-    if (config.keywords.some((item) => item.toLowerCase() === keyword.toLowerCase())) { setKeywordError('That signal is already selected.'); return; }
-    if (config.keywords.length >= 10) { setKeywordError('A scan can include up to 10 trend signals.'); return; }
+    if (!keyword) { setKeywordError(t('errEnterSignal')); return; }
+    if (config.keywords.some((item) => item.toLowerCase() === keyword.toLowerCase())) { setKeywordError(t('errSignalExists')); return; }
+    if (config.keywords.length >= 10) { setKeywordError(t('errMaxSignals')); return; }
     updateConfig((current) => ({ ...current, keywords: [...current.keywords, keyword] }));
     setKeywordInput('');
     setKeywordError('');
@@ -175,7 +177,7 @@ export default function Pipeline() {
   const handleLoadConfig = (preset) => {
     setConfig(normalizePipelineConfig({ ...preset, is_preset: false }));
     activeConfigId.current = preset.id || null;
-    setMessage({ type: 'success', text: `Loaded preset “${preset.name}”.` });
+    setMessage({ type: 'success', text: t('successLoadPreset', { name: preset.name }) });
   };
 
   const handleDeletePreset = async (id) => {
@@ -184,20 +186,20 @@ export default function Pipeline() {
       if (activeConfigId.current === id) activeConfigId.current = null;
       await loadConfigs();
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Unable to delete preset.' });
+      setMessage({ type: 'error', text: error.message || t('errDeletePreset') });
     }
   };
 
   const handleSavePreset = async () => {
-    if (!presetName.trim()) { setMessage({ type: 'error', text: 'Enter a name for this preset.' }); return; }
+    if (!presetName.trim()) { setMessage({ type: 'error', text: t('errNamePreset') }); return; }
     try {
       await api.savePipelineConfig({ ...config, name: presetName.trim(), is_preset: true });
       setPresetName('');
       setShowPresetSave(false);
       await loadConfigs();
-      setMessage({ type: 'success', text: 'Preset saved successfully.' });
+      setMessage({ type: 'success', text: t('successSavePreset') });
     } catch (error) {
-      setMessage({ type: 'error', text: error.message || 'Unable to save preset.' });
+      setMessage({ type: 'error', text: error.message || t('errSavePreset') });
     }
   };
 
@@ -213,11 +215,11 @@ export default function Pipeline() {
       const configId = saveResult.id;
       activeConfigId.current = configId;
       const result = await api.triggerPipeline(null, configId);
-      setMessage({ type: 'success', text: result.message || 'Intelligence scan accepted by the pipeline.' });
+      setMessage({ type: 'success', text: result.message || t('successScanAccepted') });
       await Promise.all([loadConfigs(), loadHistory(false)]);
     } catch (error) {
       setTriggering(false);
-      setMessage({ type: 'error', text: error.message || 'Unable to launch the intelligence scan.' });
+      setMessage({ type: 'error', text: error.message || t('errLaunchScan') });
     }
   };
 
@@ -226,8 +228,8 @@ export default function Pipeline() {
       <PipelineStatusBar config={config} connectors={connectors} stats={stats} lastRun={lastCompletedRun || history[0]} apiOnline={apiOnline} onReset={handleReset} onSavePreset={() => setShowPresetSave((current) => !current)} onToggleConfig={() => setConfigVisible((current) => !current)} configVisible={configVisible} onOpenConnectors={() => setConnectorDrawerOpen(true)} />
       <PipelineHeader config={config} validation={validation} />
 
-      {showPresetSave && <section className="pi-preset-save"><label>Preset name<input value={presetName} onChange={(event) => setPresetName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') handleSavePreset(); }} placeholder="Name this configuration" maxLength={100} /></label><button type="button" onClick={handleSavePreset}>Save preset</button><button type="button" onClick={() => setShowPresetSave(false)}>Cancel</button></section>}
-      {presets.length > 0 && <section className="pi-preset-row"><span>Quick presets</span>{presets.map((preset) => <div key={preset.id} className={activeConfigId.current === preset.id ? 'active' : ''}><button type="button" onClick={() => handleLoadConfig(preset)}>{preset.name}</button><button type="button" onClick={() => handleDeletePreset(preset.id)} aria-label={`Delete ${preset.name}`}>×</button></div>)}</section>}
+      {showPresetSave && <section className="pi-preset-save"><label>{t('presetName')}<input value={presetName} onChange={(event) => setPresetName(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') handleSavePreset(); }} placeholder={t('nameThisConfiguration')} maxLength={100} /></label><button type="button" onClick={handleSavePreset}>{t('savePreset')}</button><button type="button" onClick={() => setShowPresetSave(false)}>{t('cancel')}</button></section>}
+      {presets.length > 0 && <section className="pi-preset-row"><span>{t('quickPresets')}</span>{presets.map((preset) => <div key={preset.id} className={activeConfigId.current === preset.id ? 'active' : ''}><button type="button" onClick={() => handleLoadConfig(preset)}>{preset.name}</button><button type="button" onClick={() => handleDeletePreset(preset.id)} aria-label={`Delete ${preset.name}`}>×</button></div>)}</section>}
 
       {configVisible && <ScanConfigurationWorkspace config={config} connectors={connectors} keywordInput={keywordInput} keywordError={keywordError} suggestions={suggestions} onToggleRegion={toggleRegion} onTogglePlatform={togglePlatform} onToggleCategory={toggleCategory} onClearCategories={() => updateConfig((current) => ({ ...current, categories: [] }))} onKeywordInputChange={(value) => { setKeywordInput(value); setKeywordError(''); }} onAddKeyword={addKeyword} onRemoveKeyword={(keyword) => updateConfig((current) => ({ ...current, keywords: current.keywords.filter((item) => item !== keyword) }))} onContentTypeChange={(contentType) => updateConfig((current) => ({ ...current, content_type: contentType }))} />}
 

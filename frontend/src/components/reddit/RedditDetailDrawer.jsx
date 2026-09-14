@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import { compactNumber, formatPercent, formatScore, relativeTime, sentimentMeta, subredditLabel } from './redditData';
 
 export default function RedditDetailDrawer({ item, type, onClose }) {
+  const { t } = useTranslation();
   if (!item) return null;
   const isDiscussion = type === 'discussion';
   const sentiment = sentimentMeta(item.sentiment);
@@ -15,12 +17,12 @@ export default function RedditDetailDrawer({ item, type, onClose }) {
         {isDiscussion ? <>
           <p className="reddit-drawer-body">{item.body || 'The source did not retain a Reddit post body.'}</p>
           <dl>
-            <div><dt>Author</dt><dd>{item.author ? `u/${item.author.replace(/^u\//, '')}` : 'Unavailable'}</dd></div>
-            <div><dt>Published</dt><dd>{relativeTime(item.created_at)}</dd></div>
-            <div><dt>Upvotes</dt><dd>{compactNumber(item.upvotes)}</dd></div>
-            <div><dt>Comments</dt><dd>{compactNumber(item.comments)}</dd></div>
-            <div><dt>Upvote ratio</dt><dd>{formatPercent(item.upvote_ratio)}</dd></div>
-            <div><dt>Velocity</dt><dd>{item.velocity == null ? '—' : `${compactNumber(item.velocity)}/h`}</dd></div>
+            <div><dt>{t('author')}</dt><dd>{item.author ? `u/${item.author.replace(/^u\//, '')}` : 'Unavailable'}</dd></div>
+            <div><dt>{t('published')}</dt><dd>{relativeTime(item.created_at)}</dd></div>
+            <div><dt>{t('upvotes')}</dt><dd>{compactNumber(item.upvotes)}</dd></div>
+            <div><dt>{t('comments')}</dt><dd>{compactNumber(item.comments)}</dd></div>
+            <div><dt>{t('upvoteRatio')}</dt><dd>{formatPercent(item.upvote_ratio)}</dd></div>
+            <div><dt>{t('velocity')}</dt><dd>{item.velocity == null ? '—' : `${compactNumber(item.velocity)}/h`}</dd></div>
           </dl>
           <div className="reddit-drawer-insights"><span style={{ '--sentiment': sentiment.color }}>{sentiment.label}</span><span>Opportunity {formatScore(item.opportunity_score)}</span><span>{item.opportunity_source === 'enrichment' ? 'AI-enriched' : 'Engagement-derived'}</span></div>
           {item.source_url && <a href={item.source_url} target="_blank" rel="noreferrer">Open source discussion ↗</a>}

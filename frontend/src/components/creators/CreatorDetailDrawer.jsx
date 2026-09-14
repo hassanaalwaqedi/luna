@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import PlatformIcon from '../PlatformIcon';
 import { getContentThumbnail } from '../top-content/contentUtils';
@@ -9,6 +10,7 @@ function DrawerThumbnail({ video }) {
 }
 
 export default function CreatorDetailDrawer({ creator, videos, loading, onClose }) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (!creator) return undefined;
     const onKeyDown = (event) => { if (event.key === 'Escape') onClose(); };
@@ -28,22 +30,22 @@ export default function CreatorDetailDrawer({ creator, videos, loading, onClose 
         <button type="button" className="cr-drawer-close" onClick={onClose} aria-label="Close creator details">×</button>
         <div className="cr-drawer-identity">
           <span className="cr-creator-avatar large" style={{ '--avatar-color': getAvatarTone(creator.channel) }}>{getInitials(creator.channel)}</span>
-          <div><p>Creator profile</p><h2>{creator.channel}</h2><span>{creator.platform ? <><PlatformIcon platform={creator.platform} size={14} /> {creator.platformLabel}</> : 'Platform unavailable from aggregate data'}</span></div>
+          <div><p>{t('creatorProfile')}</p><h2>{creator.channel}</h2><span>{creator.platform ? <><PlatformIcon platform={creator.platform} size={14} /> {creator.platformLabel}</> : 'Platform unavailable from aggregate data'}</span></div>
         </div>
         <div className="cr-drawer-metrics">{metrics.map(([label, value]) => <div key={label}><small>{label}</small><strong>{value}</strong></div>)}</div>
         <section className="cr-drawer-section">
-          <h3>Performance signals</h3>
-          <div className="cr-drawer-signal"><span>Trend dominance</span><strong>{formatPercent(creator.trend_dominance_score)}</strong><i><b style={{ width: `${creator.trend_dominance_score * 100}%` }} /></i></div>
-          <div className="cr-drawer-signal"><span>Opportunity fit</span><strong>{formatPercent(creator.opportunity_alignment, 0)}</strong><i><b style={{ width: `${creator.opportunity_alignment * 100}%` }} /></i></div>
+          <h3>{t('performanceSignals')}</h3>
+          <div className="cr-drawer-signal"><span>{t('trendDominance')}</span><strong>{formatPercent(creator.trend_dominance_score)}</strong><i><b style={{ width: `${creator.trend_dominance_score * 100}%` }} /></i></div>
+          <div className="cr-drawer-signal"><span>{t('opportunityFit')}</span><strong>{formatPercent(creator.opportunity_alignment, 0)}</strong><i><b style={{ width: `${creator.opportunity_alignment * 100}%` }} /></i></div>
           <div className={`cr-drawer-velocity ${velocity.tone}`}><strong>{velocity.label}</strong><span>{velocity.detail}</span></div>
         </section>
         <section className="cr-drawer-section">
-          <h3>Top topics</h3>
-          <div className="cr-drawer-topics">{creator.top_topics?.length ? creator.top_topics.map((topic) => <span key={topic}>#{topic}</span>) : <span className="cr-no-data">Topics unavailable</span>}</div>
+          <h3>{t('topTopics')}</h3>
+          <div className="cr-drawer-topics">{creator.top_topics?.length ? creator.top_topics.map((topic) => <span key={topic}>#{topic}</span>) : <span className="cr-no-data">{t('topicsUnavailable')}</span>}</div>
         </section>
         <section className="cr-drawer-section cr-drawer-content">
-          <h3>Top content</h3>
-          {loading ? <div className="cr-drawer-loading">Loading creator content…</div> : videos.length ? <div>{videos.slice(0, 6).map((video) => <article key={video.video_id}><DrawerThumbnail video={video} /><div><strong>{video.title || 'Untitled content'}</strong><span>{formatCompactNumber(video.views)} views · {formatPercent(video.engagement_rate)} engagement</span></div></article>)}</div> : <p className="cr-no-data">No creator content is available yet.</p>}
+          <h3>{t('topContent')}</h3>
+          {loading ? <div className="cr-drawer-loading">Loading creator content…</div> : videos.length ? <div>{videos.slice(0, 6).map((video) => <article key={video.video_id}><DrawerThumbnail video={video} /><div><strong>{video.title || 'Untitled content'}</strong><span>{formatCompactNumber(video.views)} views · {formatPercent(video.engagement_rate)} engagement</span></div></article>)}</div> : <p className="cr-no-data">{t('noCreatorContentIsAvailable')}</p>}
         </section>
       </aside>
     </div>

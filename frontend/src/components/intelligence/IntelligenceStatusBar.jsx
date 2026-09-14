@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../api/client';
 
 const PLATFORM_ICONS = { youtube: '▶️', reddit: '💬', tiktok: '🎵', instagram: '📸' };
 
 export default function IntelligenceStatusBar() {
+  const { t } = useTranslation();
   const [connectorData, setConnectorData] = useState(null);
   const [lastRun, setLastRun] = useState(null);
   const [stats, setStats] = useState(null);
@@ -62,31 +64,31 @@ export default function IntelligenceStatusBar() {
     <div className="isb">
       <div className="isb-grid">
         <div className="isb-cell">
-          <span className="isb-label">Active Platforms</span>
+          <span className="isb-label">{t('activePlatforms')}</span>
           <div className="isb-platforms">
-            {activePlatforms.length > 0 ? activePlatforms : <span className="isb-muted">None detected</span>}
+            {activePlatforms.length > 0 ? activePlatforms : <span className="isb-muted">{t('noneDetected')}</span>}
           </div>
         </div>
         <div className="isb-cell">
-          <span className="isb-label">Connector Health</span>
+          <span className="isb-label">{t('connectorHealth')}</span>
           <div className="isb-health-indicator">
             <span className={`isb-health-dot ${healthyCount === totalConnectors ? 'all-good' : healthyCount > 0 ? 'partial' : 'offline'}`} />
             <span className="isb-health-text">{healthyCount}/{totalConnectors} Online</span>
           </div>
         </div>
         <div className="isb-cell">
-          <span className="isb-label">Last Scan</span>
+          <span className="isb-label">{t('lastScan')}</span>
           <span className="isb-value">{timeSince(lastRun?.started_at)}</span>
         </div>
         <div className="isb-cell">
-          <span className="isb-label">Content Indexed</span>
+          <span className="isb-label">{t('contentIndexed')}</span>
           <span className="isb-value isb-value-accent">{stats?.total_videos?.toLocaleString() ?? '—'}</span>
         </div>
         <div className="isb-cell">
-          <span className="isb-label">API Status</span>
+          <span className="isb-label">{t('apiStatus')}</span>
           <div className="isb-health-indicator">
             <span className="isb-health-dot all-good" />
-            <span className="isb-health-text">Operational</span>
+            <span className="isb-health-text">{t('operational')}</span>
           </div>
         </div>
       </div>

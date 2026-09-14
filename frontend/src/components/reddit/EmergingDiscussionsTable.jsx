@@ -1,20 +1,22 @@
+import { useTranslation } from 'react-i18next';
 import { compactNumber, formatScore, relativeTime, sentimentMeta, subredditLabel } from './redditData';
 import { RedditEmptyState, RedditSkeleton } from './RedditStates';
 
 export default function EmergingDiscussionsTable({ items, total, page, pageSize, loading, onOpen, onPageChange, onScan }) {
+  const { t } = useTranslation();
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const start = total ? ((page - 1) * pageSize) + 1 : 0;
   const end = Math.min(page * pageSize, total);
 
   return <section className="reddit-panel reddit-discussions">
     <header>
-      <div><h2>Emerging Discussions</h2><span>{total} results</span></div>
-      <button type="button" onClick={() => onOpen?.(items[0])} disabled={!items.length}>View discussion</button>
+      <div><h2>{t('emergingDiscussions')}</h2><span>{total} results</span></div>
+      <button type="button" onClick={() => onOpen?.(items[0])} disabled={!items.length}>{t('viewDiscussion')}</button>
     </header>
     {loading ? <RedditSkeleton rows={5} /> : !items.length ? <RedditEmptyState title="No Reddit discussions match these filters" detail="Run a Reddit scan or broaden the date range to populate emerging discussions." actionLabel="Run Reddit Scan" onAction={onScan} /> : <>
       <div className="reddit-table-wrap">
         <table>
-          <thead><tr><th>Discussion</th><th>Subreddit</th><th>Upvotes</th><th>Comments</th><th>Age</th><th>Velocity</th><th>Sentiment</th><th>Opportunity</th><th aria-label="Actions" /></tr></thead>
+          <thead><tr><th>{t('discussion')}</th><th>{t('subreddit')}</th><th>{t('upvotes')}</th><th>{t('comments')}</th><th>{t('age')}</th><th>{t('velocity')}</th><th>{t('sentiment')}</th><th>{t('opportunity')}</th><th aria-label="Actions" /></tr></thead>
           <tbody>{items.map((item) => {
             const sentiment = sentimentMeta(item.sentiment);
             return <tr key={item.id} tabIndex="0" onClick={() => onOpen(item)} onKeyDown={(event) => { if (event.key === 'Enter') onOpen(item); }}>
@@ -31,7 +33,7 @@ export default function EmergingDiscussionsTable({ items, total, page, pageSize,
       </div>
       {pageCount > 1 && <footer className="reddit-pagination" aria-label="Discussion pages">
         <span>Showing {start}–{end} of {total}</span>
-        <div><button type="button" onClick={() => onPageChange(page - 1)} disabled={page === 1}>Previous</button><b>{page}</b><span>of {pageCount}</span><button type="button" onClick={() => onPageChange(page + 1)} disabled={page === pageCount}>Next</button></div>
+        <div><button type="button" onClick={() => onPageChange(page - 1)} disabled={page === 1}>{t('previous')}</button><b>{page}</b><span>of {pageCount}</span><button type="button" onClick={() => onPageChange(page + 1)} disabled={page === pageCount}>{t('next')}</button></div>
       </footer>}
     </>}
   </section>;

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 
 const PIPELINE_STAGES = [
@@ -9,6 +10,7 @@ const PIPELINE_STAGES = [
 ];
 
 export default function RunningPipelineUX({ startTime, platforms = [] }) {
+  const { t } = useTranslation();
   const [activeIdx, setActiveIdx] = useState(0);
   const [elapsed, setElapsed] = useState(0);
 
@@ -41,7 +43,7 @@ export default function RunningPipelineUX({ startTime, platforms = [] }) {
         <div className="rpux-header-left">
           <span className="rpux-spinner" />
           <div>
-            <div className="rpux-title">Intelligence Scan in Progress</div>
+            <div className="rpux-title">{t('intelligenceScanInProgress')}</div>
             <div className="rpux-sub">
               {platforms.length > 0 && <span>Scanning {platforms.join(', ')}</span>}
             </div>

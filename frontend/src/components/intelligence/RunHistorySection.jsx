@@ -1,18 +1,32 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useMemo } from 'react';
-
-const PLATFORM_NAMES = { youtube: 'YouTube', reddit: 'Reddit', tiktok: 'TikTok', instagram: 'Instagram' };
-const PLATFORM_ICONS = { youtube: '▶️', reddit: '💬', tiktok: '🎵', instagram: '📸' };
-
+const PLATFORM_NAMES = {
+  youtube: 'YouTube',
+  reddit: 'Reddit',
+  tiktok: 'TikTok',
+  instagram: 'Instagram'
+};
+const PLATFORM_ICONS = {
+  youtube: '▶️',
+  reddit: '💬',
+  tiktok: '🎵',
+  instagram: '📸'
+};
 const STATUS_LABEL = {
   completed: '✓ Completed',
   completed_empty: '⚠ No Results',
   completed_filtered: '⚠ Filtered',
   running: '● Running',
   failed: '✕ Failed',
-  crashed: '✕ Crashed',
+  crashed: '✕ Crashed'
 };
-
-function EnhancedRunCard({ run, onRerun }) {
+function EnhancedRunCard({
+  run,
+  onRerun
+}) {
+  const {
+    t
+  } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const runtime = run.elapsed_seconds != null ? `${run.elapsed_seconds.toFixed(1)}s` : '—';
   const date = run.started_at ? new Date(run.started_at) : null;
@@ -25,21 +39,15 @@ function EnhancedRunCard({ run, onRerun }) {
   const platforms = run.config_platforms || run.platforms || [];
   const regions = run.config_regions || run.regions || [];
   const keywords = run.config_keywords || run.keywords || [];
-
-  return (
-    <div className={`rhs-card ${run.status}`}>
+  return <div className={`rhs-card ${run.status}`}>
       <div className="rhs-card-top">
         <div className="rhs-card-id-row">
           <span className="rhs-card-id">Scan #{run.id}</span>
-          {platforms.length > 0 && (
-            <div className="rhs-card-platforms">
-              {platforms.map(p => (
-                <span key={p} className="rhs-platform-badge" data-platform={p}>
+          {platforms.length > 0 && <div className="rhs-card-platforms">
+              {platforms.map(p => <span key={p} className="rhs-platform-badge" data-platform={p}>
                   {PLATFORM_ICONS[p] || '⚡'}
-                </span>
-              ))}
-            </div>
-          )}
+                </span>)}
+            </div>}
         </div>
         <span className={`rhs-card-status ${run.status}`}>{STATUS_LABEL[run.status] || run.status}</span>
       </div>
@@ -47,27 +55,34 @@ function EnhancedRunCard({ run, onRerun }) {
       <div className="rhs-card-metrics">
         <div className="rhs-metric">
           <div className="rhs-metric-val">{run.videos_ingested ?? '—'}</div>
-          <div className="rhs-metric-label">Ingested</div>
+          <div className="rhs-metric-label">{t('ingested')}</div>
         </div>
         <div className="rhs-metric">
           <div className="rhs-metric-val">{run.videos_processed ?? '—'}</div>
-          <div className="rhs-metric-label">Scored</div>
+          <div className="rhs-metric-label">{t('scored')}</div>
         </div>
         <div className="rhs-metric">
           <div className="rhs-metric-val">{run.videos_enriched ?? '—'}</div>
-          <div className="rhs-metric-label">AI Analyzed</div>
+          <div className="rhs-metric-label">{t('aiAnalyzed')}</div>
         </div>
         <div className="rhs-metric">
           <div className="rhs-metric-val">{run.videos_stored ?? '—'}</div>
-          <div className="rhs-metric-label">Stored</div>
+          <div className="rhs-metric-label">{t('stored')}</div>
         </div>
       </div>
 
       <div className="rhs-card-meta">
         <span className="rhs-meta-item">⏱ {runtime}</span>
         <span className="rhs-meta-item">📊 {depth}</span>
-        <span className="rhs-meta-item">{date ? date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}</span>
-        <span className="badge badge-purple" style={{ fontSize: '0.55rem' }}>{run.triggered_by || 'manual'}</span>
+        <span className="rhs-meta-item">{date ? date.toLocaleDateString([], {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) : '—'}</span>
+        <span className="badge badge-purple" style={{
+        fontSize: '0.55rem'
+      }}>{run.triggered_by || 'manual'}</span>
       </div>
 
       {/* Expandable details */}
@@ -75,44 +90,39 @@ function EnhancedRunCard({ run, onRerun }) {
         <button className="rhs-expand-btn" onClick={() => setExpanded(!expanded)}>
           {expanded ? '▾ Less' : '▸ Details'}
         </button>
-        {onRerun && run.status !== 'running' && (
-          <button className="rhs-rerun-btn" onClick={() => onRerun(run)}>↻ Rerun</button>
-        )}
+        {onRerun && run.status !== 'running' && <button className="rhs-rerun-btn" onClick={() => onRerun(run)}>↻ Rerun</button>}
       </div>
 
-      {expanded && (
-        <div className="rhs-card-details">
-          {regions.length > 0 && (
-            <div className="rhs-detail-row">
-              <span className="rhs-detail-label">Markets</span>
+      {expanded && <div className="rhs-card-details">
+          {regions.length > 0 && <div className="rhs-detail-row">
+              <span className="rhs-detail-label">{t('markets')}</span>
               <span className="rhs-detail-value">{regions.join(', ')}</span>
-            </div>
-          )}
-          {keywords.length > 0 && (
-            <div className="rhs-detail-row">
-              <span className="rhs-detail-label">Signals</span>
+            </div>}
+          {keywords.length > 0 && <div className="rhs-detail-row">
+              <span className="rhs-detail-label">{t('signals')}</span>
               <div className="rhs-detail-tags">
                 {keywords.map(k => <span key={k} className="rhs-detail-tag">{k}</span>)}
               </div>
-            </div>
-          )}
-          {platforms.length > 0 && (
-            <div className="rhs-detail-row">
-              <span className="rhs-detail-label">Platforms</span>
+            </div>}
+          {platforms.length > 0 && <div className="rhs-detail-row">
+              <span className="rhs-detail-label">{t('platforms')}</span>
               <span className="rhs-detail-value">{platforms.map(p => PLATFORM_NAMES[p] || p).join(', ')}</span>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
+            </div>}
+        </div>}
+    </div>;
 }
-
-export default function RunHistorySection({ history, loading, onRefresh, onRerun }) {
+export default function RunHistorySection({
+  history,
+  loading,
+  onRefresh,
+  onRerun
+}) {
+  const {
+    t
+  } = useTranslation();
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
-
   const filtered = useMemo(() => {
     let items = [...history];
     if (statusFilter !== 'all') {
@@ -132,77 +142,70 @@ export default function RunHistorySection({ history, loading, onRefresh, onRerun
     if (sortBy === 'runtime') items.sort((a, b) => (b.elapsed_seconds || 0) - (a.elapsed_seconds || 0));
     return items;
   }, [history, statusFilter, searchTerm, sortBy]);
-
   const statusCounts = useMemo(() => {
-    const counts = { all: history.length, completed: 0, failed: 0, warning: 0, running: 0 };
+    const counts = {
+      all: history.length,
+      completed: 0,
+      failed: 0,
+      warning: 0,
+      running: 0
+    };
     history.forEach(r => {
-      if (r.status === 'completed') counts.completed++;
-      else if (r.status === 'failed' || r.status === 'crashed') counts.failed++;
-      else if (r.status === 'completed_empty' || r.status === 'completed_filtered') counts.warning++;
-      else if (r.status === 'running') counts.running++;
+      if (r.status === 'completed') counts.completed++;else if (r.status === 'failed' || r.status === 'crashed') counts.failed++;else if (r.status === 'completed_empty' || r.status === 'completed_filtered') counts.warning++;else if (r.status === 'running') counts.running++;
     });
     return counts;
   }, [history]);
-
-  return (
-    <div className="rhs-section">
+  return <div className="rhs-section">
       <div className="rhs-header">
-        <h3 className="rhs-title"><span>📋</span> Recent Intelligence Runs</h3>
+        <h3 className="rhs-title"><span>📋</span>{t('recentIntelligenceRuns')}</h3>
         <div className="rhs-header-actions">
           <span className="badge badge-blue">{history.length} runs</span>
-          <button className="btn btn-secondary" onClick={onRefresh} style={{ fontSize: '0.7rem', padding: '4px 12px' }}>🔄</button>
+          <button className="btn btn-secondary" onClick={onRefresh} style={{
+          fontSize: '0.7rem',
+          padding: '4px 12px'
+        }}>🔄</button>
         </div>
       </div>
 
       {/* Filter toolbar */}
-      {history.length > 0 && (
-        <div className="rhs-toolbar">
+      {history.length > 0 && <div className="rhs-toolbar">
           <div className="rhs-status-filters">
-            {[
-              { key: 'all', label: 'All' },
-              { key: 'completed', label: '✓ Success', cls: 'green' },
-              { key: 'failed', label: '✕ Failed', cls: 'red' },
-              { key: 'warning', label: '⚠ Warning', cls: 'orange' },
-            ].map(f => (
-              <button
-                key={f.key}
-                className={`rhs-filter-btn ${statusFilter === f.key ? 'active' : ''} ${f.cls || ''}`}
-                onClick={() => setStatusFilter(f.key)}
-              >
+            {[{
+          key: 'all',
+          label: 'All'
+        }, {
+          key: 'completed',
+          label: '✓ Success',
+          cls: 'green'
+        }, {
+          key: 'failed',
+          label: '✕ Failed',
+          cls: 'red'
+        }, {
+          key: 'warning',
+          label: '⚠ Warning',
+          cls: 'orange'
+        }].map(f => <button key={f.key} className={`rhs-filter-btn ${statusFilter === f.key ? 'active' : ''} ${f.cls || ''}`} onClick={() => setStatusFilter(f.key)}>
                 {f.label} {statusCounts[f.key] > 0 && <span className="rhs-filter-count">{statusCounts[f.key]}</span>}
-              </button>
-            ))}
+              </button>)}
           </div>
           <div className="rhs-toolbar-right">
-            <input
-              className="rhs-search"
-              placeholder="Search scans..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
+            <input className="rhs-search" placeholder="Search scans..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
             <select className="rhs-sort" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-              <option value="runtime">Runtime</option>
+              <option value="newest">{t('newest')}</option>
+              <option value="oldest">{t('oldest')}</option>
+              <option value="runtime">{t('runtime')}</option>
             </select>
           </div>
-        </div>
-      )}
+        </div>}
 
       {/* Cards */}
-      {loading ? (
-        <div className="loading"><div className="spinner" />Loading scan history...</div>
-      ) : filtered.length === 0 ? (
-        <div className="rhs-empty">
+      {loading ? <div className="loading"><div className="spinner" />{t('loadingScanHistory')}</div> : filtered.length === 0 ? <div className="rhs-empty">
           <span className="rhs-empty-icon">{history.length === 0 ? '🚀' : '🔍'}</span>
           <h4>{history.length === 0 ? 'No intelligence scans yet' : 'No matching scans'}</h4>
           <p>{history.length === 0 ? 'Launch your first scan above to start gathering market intelligence' : 'Try adjusting your filters'}</p>
-        </div>
-      ) : (
-        <div className="rhs-cards">
+        </div> : <div className="rhs-cards">
           {filtered.map(r => <EnhancedRunCard key={r.id} run={r} onRerun={onRerun} />)}
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 }

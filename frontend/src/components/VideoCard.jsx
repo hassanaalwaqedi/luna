@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { getPlatformLabel, fmt } from '../utils/platform';
 import PlatformIcon from './PlatformIcon';
@@ -14,9 +15,9 @@ const REGION_FLAGS = {
 
 function getTrendBadge(video) {
   const eng = video.engagement_rate * 100;
-  if (eng > 6 && video.score > 0.4) return { emoji: '🔥', label: 'Trending', cls: 'trend-badge-fire' };
-  if (video.score > 0.6) return { emoji: '🧠', label: 'High Value', cls: 'trend-badge-brain' };
-  if (eng > 4) return { emoji: '🚀', label: 'Rising', cls: 'trend-badge-rising' };
+  if (eng > 6 && video.score > 0.4) return { emoji: '🔥', labelKey: 'badge.trending', cls: 'trend-badge-fire' };
+  if (video.score > 0.6) return { emoji: '🧠', labelKey: 'badge.highValue', cls: 'trend-badge-brain' };
+  if (eng > 4) return { emoji: '🚀', labelKey: 'badge.rising', cls: 'trend-badge-rising' };
   return null;
 }
 
@@ -39,6 +40,7 @@ function extractTags(video) {
 }
 
 export default function VideoCard({ video, onTranscript, onGenerate }) {
+  const { t } = useTranslation();
   const trendBadge = getTrendBadge(video);
   const tags = extractTags(video);
   const isPending = (val) => !val || val === 'Analysis pending';
@@ -59,7 +61,7 @@ export default function VideoCard({ video, onTranscript, onGenerate }) {
         </Link>
         {trendBadge && (
           <span className={`vcard-trend ${trendBadge.cls}`}>
-            {trendBadge.emoji} {trendBadge.label}
+            {trendBadge.emoji} {t(trendBadge.labelKey)}
           </span>
         )}
         <span className="vcard-score-float">
@@ -74,9 +76,9 @@ export default function VideoCard({ video, onTranscript, onGenerate }) {
         </Link>
 
         <p className="vcard-channel">
-          <PlatformIcon platform={video.platform} size={14} /> {video.channel || 'Unknown'}
+          <PlatformIcon platform={video.platform} size={14} /> {video.channel || t('unknownChannel')}
           {video.source_region && (
-            <span className="vcard-region-badge" title={`Source: ${video.source_region}`}>
+            <span className="vcard-region-badge" title={`${t('sourceRegion')}: ${video.source_region}`}>
               {REGION_FLAGS[video.source_region] || '🌐'} {video.source_region}
             </span>
           )}
@@ -150,15 +152,13 @@ export default function VideoCard({ video, onTranscript, onGenerate }) {
 
         {/* Actions */}
         <div className="vcard-actions">
-          <Link to={`/video/${video.video_id}`} className="vcard-btn vcard-btn-detail">
-            View Details
-          </Link>
+          <Link to={`/video/${video.video_id}`} className="vcard-btn vcard-btn-detail">{t('viewDetails')}</Link>
           {video.platform === 'youtube' && (
             <button
               className="vcard-btn vcard-btn-transcript"
               onClick={() => onTranscript(video)}
             >
-              📝 Transcript
+              📝 {t('transcriptBtn')}
             </button>
           )}
           <button
@@ -166,7 +166,7 @@ export default function VideoCard({ video, onTranscript, onGenerate }) {
             onClick={() => onGenerate && onGenerate(video)}
             style={{ background: 'var(--color-accent-purple-bg)', color: 'var(--color-accent-purple)', borderColor: 'var(--color-accent-purple)' }}
           >
-            ✨ Generate
+            ✨ {t('generateBtn')}
           </button>
         </div>
       </div>
@@ -176,19 +176,19 @@ export default function VideoCard({ video, onTranscript, onGenerate }) {
         <div className="vcard-insight-panel">
           {!isPending(video.target_audience) && (
             <div className="vcard-insight-row">
-              <span className="vcard-insight-label">🎯 Audience</span>
+              <span className="vcard-insight-label">🎯 {t('insightAudience')}</span>
               <p>{video.target_audience}</p>
             </div>
           )}
           {!isPending(video.content_gap) && (
             <div className="vcard-insight-row">
-              <span className="vcard-insight-label">💡 Content Gap</span>
+              <span className="vcard-insight-label">💡 {t('insightContentGap')}</span>
               <p>{video.content_gap}</p>
             </div>
           )}
           {!isPending(video.strategic_advice) && (
             <div className="vcard-insight-row">
-              <span className="vcard-insight-label">🧭 Strategy</span>
+              <span className="vcard-insight-label">🧭 {t('insightStrategy')}</span>
               <p>{video.strategic_advice}</p>
             </div>
           )}

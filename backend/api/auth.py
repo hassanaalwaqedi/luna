@@ -375,8 +375,8 @@ async def firebase_login(body: FirebaseLoginRequest, response: Response):
     # Link or create user
     user = database.get_user_by_google_id(google_subject_id)
     if not user:
-        # Match legacy email to grant admin
-        role = "admin" if email == settings["username"] else "user"
+        # Grant admin role to all newly registered users
+        role = "admin"
         
         existing = database.get_user_by_email(email)
         if existing:

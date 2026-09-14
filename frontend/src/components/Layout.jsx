@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import DatasetSwitcher from './DatasetSwitcher';
 import PlatformIcon from './PlatformIcon';
+import LanguageSwitcher from './LanguageSwitcher';
 import { useAuth } from '../context/AuthContext';
 import { useDataset } from '../context/DatasetContext';
 
 const navItems = [
-  { to: '/', icon: '⌂', label: 'For You' },
-  { to: '/videos', icon: '▣', label: 'Top Content' },
-  { to: '/trending', icon: '♨', label: 'Trending' },
-  { to: '/creators', icon: '♙', label: 'Creators' },
-  { to: '/pipeline', icon: '✦', label: 'Intelligence' },
+  { to: '/', icon: '⌂', labelKey: 'nav.forYou' },
+  { to: '/videos', icon: '▣', labelKey: 'nav.topContent' },
+  { to: '/trending', icon: '♨', labelKey: 'nav.trending' },
+  { to: '/creators', icon: '♙', labelKey: 'nav.creators' },
+  { to: '/pipeline', icon: '✦', labelKey: 'nav.intelligence' },
 ];
 
 const platformItems = [
-  { to: '/videos', icon: '▦', label: 'All Platforms' },
-  { to: '/platforms/reddit', platform: 'reddit', label: 'Reddit Intelligence' },
+  { to: '/videos', icon: '▦', labelKey: 'nav.allPlatforms' },
+  { to: '/platforms/reddit', platform: 'reddit', labelKey: 'nav.redditIntelligence' },
 ];
 
 const THEME_KEY = 'luna-theme';
@@ -34,6 +36,7 @@ export default function Layout() {
   const leaveTimer = useRef(null);
   const { user, logout } = useAuth();
   const { activeDataset, datasetStats } = useDataset();
+  const { t } = useTranslation();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -82,7 +85,7 @@ export default function Layout() {
         <div className="sidebar-brand">
           <div className="brand-logo-row">
             <img src="/logo.png" alt="Luna logo" className="brand-logo" />
-            <div className="brand-copy"><h1>Luna</h1><span>Content Intelligence</span></div>
+            <div className="brand-copy"><h1>{t('layout.brand')}</h1><span>{t('layout.tagline')}</span></div>
             <span className="brand-sparkle" aria-hidden="true">✦</span>
           </div>
         </div>
@@ -90,20 +93,21 @@ export default function Layout() {
         <div className="sidebar-workspace"><DatasetSwitcher /><span className="sidebar-workspace-mini" aria-hidden="true">◎</span><span className="sidebar-workspace-count">{workspaceCount}</span></div>
 
         <nav className="sidebar-nav" aria-label="Main navigation">
-          <p className="sidebar-section-label">Main</p>
-          {navItems.map((item) => <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)} title={item.label} aria-label={item.label}><span className="nav-icon">{item.icon}</span><span className="nav-label">{item.label}</span></NavLink>)}
+          <p className="sidebar-section-label">{t('nav.mainSection')}</p>
+          {navItems.map((item) => <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)} title={t(item.labelKey)} aria-label={t(item.labelKey)}><span className="nav-icon">{item.icon}</span><span className="nav-label">{t(item.labelKey)}</span></NavLink>)}
         </nav>
 
         <nav className="sidebar-platforms" aria-label="Source Intelligence">
-          <p className="sidebar-section-label">Sources</p>
-          {platformItems.map((item) => <NavLink key={item.to} to={item.to} end={item.to === '/videos'} className={({ isActive }) => `nav-link platform-nav-link${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)} title={item.label} aria-label={item.label}><span className="nav-icon">{item.platform ? <PlatformIcon platform={item.platform} size={17} /> : item.icon}</span><span className="nav-label">{item.label}</span></NavLink>)}
+          <p className="sidebar-section-label">{t('nav.sourcesSection')}</p>
+          {platformItems.map((item) => <NavLink key={item.to} to={item.to} end={item.to === '/videos'} className={({ isActive }) => `nav-link platform-nav-link${isActive ? ' active' : ''}`} onClick={() => setMenuOpen(false)} title={t(item.labelKey)} aria-label={t(item.labelKey)}><span className="nav-icon">{item.platform ? <PlatformIcon platform={item.platform} size={17} /> : item.icon}</span><span className="nav-label">{t(item.labelKey)}</span></NavLink>)}
         </nav>
 
         <div className="sidebar-footer">
-          <button className="sidebar-pin-control" onClick={togglePinned} aria-label={isPinned ? 'Unpin navigation' : 'Pin navigation'} title={isPinned ? 'Unpin navigation' : 'Pin navigation'}><span aria-hidden="true">{isPinned ? '⊙' : '⊖'}</span><span className="nav-label">{isPinned ? 'Pinned' : 'Pin navigation'}</span></button>
-          <button className="theme-toggle" onClick={() => setTheme((prev) => prev === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}><span className="theme-toggle-icon">{theme === 'dark' ? '☼' : '☾'}</span><span className="nav-label">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span></button>
-          {user && <button className="theme-toggle sidebar-logout" onClick={logout} aria-label="Logout" title="Logout"><span className="theme-toggle-icon">↪</span><span className="nav-label">Logout</span></button>}
-          <div className="sidebar-profile" title={user ? `${user.username}, Administrator` : 'System Online'}><span className="health-dot online" aria-hidden="true" /><span className="sidebar-avatar" aria-hidden="true">{user ? user.username.slice(0, 1).toUpperCase() : 'L'}</span><div><strong>{user ? user.username : 'System Online'}</strong><span>{user ? 'Administrator' : 'Connected'}</span></div><span className="sidebar-profile-chevron nav-label" aria-hidden="true">⌄</span></div>
+          <LanguageSwitcher />
+          <button className="sidebar-pin-control" onClick={togglePinned} aria-label={isPinned ? t('nav.unpin') : t('nav.pin')} title={isPinned ? t('nav.unpin') : t('nav.pin')}><span aria-hidden="true">{isPinned ? '⊙' : '⊖'}</span><span className="nav-label">{isPinned ? t('nav.pinned') : t('nav.pin')}</span></button>
+          <button className="theme-toggle" onClick={() => setTheme((prev) => prev === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')} title={theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}><span className="theme-toggle-icon">{theme === 'dark' ? '☼' : '☾'}</span><span className="nav-label">{theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}</span></button>
+          {user && <button className="theme-toggle sidebar-logout" onClick={logout} aria-label={t('nav.logout')} title={t('nav.logout')}><span className="theme-toggle-icon">↪</span><span className="nav-label">{t('nav.logout')}</span></button>}
+          <div className="sidebar-profile" title={user ? `${user.username}, ${t('nav.admin')}` : t('nav.systemOnline')}><span className="health-dot online" aria-hidden="true" /><span className="sidebar-avatar" aria-hidden="true">{user ? user.username.slice(0, 1).toUpperCase() : 'L'}</span><div><strong>{user ? user.username : t('nav.systemOnline')}</strong><span>{user ? t('nav.admin') : t('nav.connected')}</span></div><span className="sidebar-profile-chevron nav-label" aria-hidden="true">⌄</span></div>
         </div>
       </aside>
       <main className="main-content"><Outlet /></main>

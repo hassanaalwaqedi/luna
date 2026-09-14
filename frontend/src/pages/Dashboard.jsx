@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
@@ -31,6 +32,7 @@ function DashboardError({ onRetry }) {
 }
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { datasetId, activeDataset, datasetStats } = useDataset();
   const [stats, setStats] = useState(null);
@@ -103,10 +105,10 @@ export default function Dashboard() {
         <>
           {loading && !stats ? <DashboardSkeleton /> : (
             <section className="dash-metrics-grid" aria-label="Intelligence metrics">
-              <MetricCard icon="⌁" label="Active Trends" value={trends.length} description={`+${trendsResponse?.count || 0} signals across ${trendsResponse?.total_videos_analyzed || 0} items`} tone="purple" />
-              <MetricCard icon="♨" label="Viral Potential" value={topOpportunity ? `${Math.round((topOpportunity.opportunity_score || 0) * 100)}%` : null} description={topOpportunity ? `${topOpportunity.trend} opportunity` : 'Waiting for opportunity data'} tone="coral" />
-              <MetricCard icon="♥" label="Engagement" value={stats?.avg_engagement_rate ? `${(stats.avg_engagement_rate * 100).toFixed(1)}%` : null} description="Average across analyzed content" tone="cyan" />
-              <MetricCard icon="◈" label="Content Analyzed" value={fmt(totalVideos)} description={`${stats?.total_channels || 0} creators indexed`} tone="amber" />
+              <MetricCard icon="⌁" label={t('activeTrends')} value={trends.length} description={t('signalsAcross', { signals: trendsResponse?.count || 0, items: trendsResponse?.total_videos_analyzed || 0 })} tone="purple" />
+              <MetricCard icon="♨" label={t('viralPotential')} value={topOpportunity ? `${Math.round((topOpportunity.opportunity_score || 0) * 100)}%` : null} description={topOpportunity ? t('opportunityTrend', { trend: topOpportunity.trend }) : t('waitingForOpportunityData')} tone="coral" />
+              <MetricCard icon="♥" label={t('engagement')} value={stats?.avg_engagement_rate ? `${(stats.avg_engagement_rate * 100).toFixed(1)}%` : null} description={t('avgAcrossAnalyzed')} tone="cyan" />
+              <MetricCard icon="◈" label={t('contentAnalyzed')} value={fmt(totalVideos)} description={t('creatorsIndexed', { count: stats?.total_channels || 0 })} tone="amber" />
             </section>
           )}
 

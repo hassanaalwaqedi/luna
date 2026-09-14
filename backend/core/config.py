@@ -20,6 +20,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # ---------------------------------------------------------------------------
 _ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
+from dotenv import load_dotenv
+load_dotenv(dotenv_path=_ENV_FILE)
+
 
 class ScoringWeights(BaseSettings):
     """Weights used in the composite video scoring formula."""
@@ -63,9 +66,9 @@ class Settings(BaseSettings):
         default="",
         description="Google / YouTube Data API v3 key",
     )
-    groq_api_key: str = Field(
+    gemini_api_key: str = Field(
         default="",
-        description="Groq API key for AI enrichment (LLM inference)",
+        description="Gemini API key for AI enrichment (LLM inference)",
     )
 
     # ---- Database ----------------------------------------------------------

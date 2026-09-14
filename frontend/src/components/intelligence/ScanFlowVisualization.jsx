@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 const FLOW_STAGES = [
   { icon: '🌍', label: 'Markets', sub: 'Target regions' },
   { icon: '📡', label: 'Platforms', sub: 'Data sources' },
@@ -8,9 +9,10 @@ const FLOW_STAGES = [
 ];
 
 export default function ScanFlowVisualization({ isRunning = false, activeStage = -1 }) {
+  const { t } = useTranslation();
   return (
     <div className={`sfv ${isRunning ? 'sfv-running' : ''}`}>
-      <div className="sfv-label">Intelligence Pipeline Flow</div>
+      <div className="sfv-label">{t('intelligencePipelineFlow')}</div>
       <div className="sfv-track">
         {FLOW_STAGES.map((stage, i) => {
           let stageClass = '';

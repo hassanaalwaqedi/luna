@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import PlatformIcon from '../PlatformIcon';
 import ContentActions from './ContentActions';
 import ContentInsight from './ContentInsight';
@@ -6,13 +7,14 @@ import ContentMetrics from './ContentMetrics';
 import { formatPublishedAt, getContentTags } from './contentUtils';
 
 export default function FeaturedContentCard({ video, onGenerate, onTranscript }) {
+  const { t } = useTranslation();
   if (!video) return null;
   const tags = getContentTags(video, 5);
   return (
     <section className="tc-featured-card" aria-label="Featured top-performing content">
       <ContentMedia video={video} rank={1} featured />
       <div className="tc-featured-main">
-        <div className="tc-section-kicker">Featured opportunity <span>Highest AI score</span></div>
+        <div className="tc-section-kicker">{t('featuredOpportunity')}<span>{t('highestAiScore')}</span></div>
         <h2>{video.title || 'Untitled content'}</h2>
         <p className="tc-featured-creator"><PlatformIcon platform={video.platform} size={17} /> {video.channel || 'Unknown creator'} <span>•</span> {formatPublishedAt(video.published_at)}</p>
         <ContentMetrics video={video} />

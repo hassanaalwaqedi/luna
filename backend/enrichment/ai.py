@@ -1,11 +1,11 @@
 """
 AI Enrichment module for Luna content intelligence.
 
-Uses Groq's fast LLM inference API for:
+Uses Gemini's fast LLM inference API for:
   - Strategic content analysis (target audience, actionable advice, gaps)
   - Topic extraction and content categorization
 
-Falls back to rule-based extraction when Groq API key is not set
+Falls back to rule-based extraction when Gemini API key is not set
 or when API calls fail. Includes:
   - Selective enrichment: only Top N videos per niche get LLM calls
   - Rate-limit handling with Retry-After header compliance
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 _DEFAULT_RETRY_AFTER: float = 5.0
 _MAX_RETRIES_PER_VIDEO: int = 2
-_COOLDOWN_BETWEEN_CALLS: float = 2.0   # seconds between Groq API calls
+_COOLDOWN_BETWEEN_CALLS: float = 2.0   # seconds between Gemini API calls
 _TOP_N_PER_NICHE: int = 10             # only enrich top N per niche
 _CIRCUIT_BREAKER_THRESHOLD: int = 3    # consecutive failures before skipping
 
@@ -86,55 +86,56 @@ def _apply_pending_defaults(video: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Groq-powered extraction
+# Gemini-powered extraction
 # ---------------------------------------------------------------------------
-class GroqClient:
-    """Thin client for Groq's OpenAI-compatible chat completions API."""
-
-    BASE_URL = "https://api.groq.com/openai/v1/chat/completions"
+class GeminiClient:
+    """Thin client for Gemini's native API."""
 
     def __init__(self, api_key: str) -> None:
         self._api_key = api_key
         self._session = requests.Session()
-        self._session.headers.update(
-            {
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            }
-        )
+        self._session.headers.update({"Content-Type": "application/json"})
 
     def chat(
         self,
         messages: List[Dict[str, str]],
-        model: str = "llama-3.3-70b-versatile",
-        temperature: float = 0.0,
-        max_tokens: int = 500,
+        model: str = "gemini-3.8-flash",
+        temperature: float = 0.7,
+        max_tokens: int = 1200,
     ) -> str:
         """
-        Send a chat completion request and return the assistant message.
-
-        Raises ``requests.HTTPError`` on failure so callers can inspect
-        the status code (especially 429 for rate limiting).
+        Send a chat completion request and return the assistant message using the native Gemini API.
         """
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={self._api_key}"
+        
+        # Convert OpenAI-style messages to Gemini format
+        contents = []
+        for msg in messages:
+            role = "user" if msg["role"] == "user" else "model"
+            contents.append({
+                "role": role,
+                "parts": [{"text": msg["content"]}]
+            })
+            
         payload = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
+            "contents": contents,
+            "generationConfig": {
+                "temperature": temperature,
+                "maxOutputTokens": max_tokens,
+            }
         }
 
-        response = self._session.post(self.BASE_URL, json=payload, timeout=15)
+        response = self._session.post(url, json=payload, timeout=60)
         try:
             response.raise_for_status()
-        except requests.HTTPError as exc:
-            # Sanitize: strip Authorization header from exception's request
-            # object to prevent Bearer tokens leaking into log tracebacks.
-            if exc.request is not None and hasattr(exc.request, "headers"):
-                exc.request.headers.pop("Authorization", None)
+        except requests.HTTPError:
             raise
+            
         data = response.json()
+        if "candidates" in data and len(data["candidates"]) > 0:
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+        return ""
 
-        return data["choices"][0]["message"]["content"]
 
 
 # ---------------------------------------------------------------------------
@@ -179,10 +180,10 @@ _REDDIT_PROMPT = (
 
 
 def _extract_strategic_insights(
-    client: GroqClient, title: str, description: str
+    client: GeminiClient, title: str, description: str
 ) -> Dict[str, Any]:
     """
-    Use Groq LLM to extract strategic, business-actionable insights.
+    Use Gemini LLM to extract strategic, business-actionable insights.
 
     Returns a dict with keys: topics, content_category, ai_summary,
     target_audience, strategic_advice, content_gap
@@ -220,7 +221,7 @@ def _extract_strategic_insights(
             "content_gap": result.get("content_gap", _PENDING),
         }
     except (json.JSONDecodeError, KeyError, IndexError) as exc:
-        logger.warning("Groq response parse error: %s -- using pending.", exc)
+        logger.warning("Gemini response parse error: %s -- using pending.", exc)
         topics = _extract_topics_rule_based(title, description)
         return {
             "topics": json.dumps(topics),
@@ -233,7 +234,7 @@ def _extract_strategic_insights(
 
 
 def _extract_reddit_insights(
-    client: GroqClient, title: str, description: str
+    client: GeminiClient, title: str, description: str
 ) -> Dict[str, Any]:
     """Produce Reddit-specific enrichment without fabricating unsupported claims."""
     messages = [
@@ -289,12 +290,12 @@ def _extract_reddit_insights(
 # Single-video enrichment with rate-limit handling
 # ---------------------------------------------------------------------------
 def enrich_video(
-    video: Dict[str, Any], client: Optional[GroqClient] = None
+    video: Dict[str, Any], client: Optional[GeminiClient] = None
 ) -> Dict[str, Any]:
     """
     Enrich a single video dict with AI-derived strategic insights.
 
-    Uses Groq LLM if client is provided, otherwise fills with pending.
+    Uses Gemini LLM if client is provided, otherwise fills with pending.
     Handles 429 rate limits with Retry-After compliance and retries
     up to ``_MAX_RETRIES_PER_VIDEO`` times.
     """
@@ -333,7 +334,7 @@ def enrich_video(
                         )
                 else:
                     logger.warning(
-                        "Groq API error for video '%s': %s -- pending.",
+                        "Gemini API error for video '%s': %s -- pending.",
                         video.get("video_id", "?"),
                         exc,
                     )
@@ -379,19 +380,19 @@ def enrich_videos(videos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Selectively enrich videos with strategic AI insights.
 
-    - Only the Top 10 videos per niche (by score) are sent to Groq LLM
+    - Only the Top 10 videos per niche (by score) are sent to Gemini LLM
     - Remaining videos get rule-based topics + "Analysis pending" fields
     - 2-second cooldown between API calls to avoid 429 rate limits
     - Any failure fills fields with "Analysis pending" (never crashes)
     """
     settings = get_settings()
-    client: Optional[GroqClient] = None
+    client: Optional[GeminiClient] = None
 
-    if settings.groq_api_key:
-        client = GroqClient(settings.groq_api_key)
-        logger.info("Groq API key found -- using strategic LLM enrichment.")
+    if settings.gemini_api_key:
+        client = GeminiClient(settings.gemini_api_key)
+        logger.info("Gemini API key found -- using strategic LLM enrichment.")
     else:
-        logger.info("No Groq API key -- all videos get 'Analysis pending'.")
+        logger.info("No Gemini API key -- all videos get 'Analysis pending'.")
 
     # Determine which videos qualify for LLM enrichment
     selected_ids = _select_top_n_per_niche(videos) if client else set()
@@ -409,7 +410,7 @@ def enrich_videos(videos: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     for i, v in enumerate(videos):
         try:
             if v["video_id"] in selected_ids and client and not circuit_open:
-                # Full strategic enrichment via Groq
+                # Full strategic enrichment via Gemini
                 result = enrich_video(v, client)
                 enriched.append(result)
                 llm_count += 1

@@ -42,10 +42,11 @@ from core.database import (
     init_db, get_pipeline_history,
     save_pipeline_config, get_pipeline_config,
     list_pipeline_configs, delete_pipeline_config, get_last_used_config,
-    acquire_pipeline_lock, release_pipeline_lock,
+    acquire_pipeline_lock, release_pipeline_lock, count_recent_successful_scans
 )
 from core.queries import (
     get_videos_with_topics,
+    get_video_by_id,
 )
 from pipeline.trends import discover_trends, discover_opportunities
 
@@ -134,17 +135,19 @@ _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 async def _verify_pipeline_access(
     request: Request,
     api_key: Optional[str] = Security(_api_key_header),
-) -> None:
+) -> str:
     """Authorize a costly scan without exposing an unauthenticated trigger."""
     required_key = _settings.pipeline_api_key
     if required_key and api_key and hmac.compare_digest(api_key, required_key):
-        return
+        return "api_key"
 
     # The browser client already sends its JWT/cookie. Keeping the shared key
     # as an alternative preserves service-to-service automation.
     user = await require_auth(request, request.cookies.get("luna_session"), request.cookies.get("genx_session"))
     if user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Administrator privileges required.")
+    
+    return user.get("id", "unknown_user")
 
 
 # ---------------------------------------------------------------------------
@@ -294,9 +297,18 @@ def _launch_pipeline(config_id: Optional[int], triggered_by: str = "api") -> Pip
 )
 async def run_pipeline_endpoint(
     config_id: Optional[int] = Query(default=None, description="Pipeline config ID to use"),
+    user_id: str = Depends(_verify_pipeline_access),
 ) -> PipelineRunResponse:
     """Trigger a full pipeline run (ingest -> process -> store)."""
-    return _launch_pipeline(config_id, triggered_by="api")
+    if user_id != "api_key":
+        recent_scans = count_recent_successful_scans(user_id, hours=24)
+        if recent_scans >= 2:
+            raise HTTPException(
+                status_code=429,
+                detail="Daily scan limit reached. You can run up to 2 successful scans per 24 hours. Please try again later."
+            )
+            
+    return _launch_pipeline(config_id, triggered_by=user_id)
 
 
 @app.get(
@@ -621,7 +633,7 @@ class ContentGenerateRequest(BaseModel):
 async def generate_content(req: ContentGenerateRequest):
     """
     Generate content ideas, titles, hooks, scripts, hashtags & strategy
-    from a trending video using Groq LLM.
+    from a trending video using Gemini LLM.
     """
     # Check cache
     cache_key = f"{req.video_id}_{req.platform}_{req.tone}"
@@ -690,15 +702,15 @@ Respond ONLY with valid JSON in this exact format:
 
 Make it practical, viral, and optimized for {req.platform}. No markdown, no explanation."""
 
-    # Call Groq LLM
+    # Call Gemini LLM
     settings = get_settings()
-    if not settings.groq_api_key:
+    if not settings.gemini_api_key:
         raise HTTPException(status_code=503, detail="AI service not configured (no API key).")
 
-    from enrichment.ai import GroqClient
+    from enrichment.ai import GeminiClient
     import json as _json
 
-    client = GroqClient(settings.groq_api_key)
+    client = GeminiClient(settings.gemini_api_key)
 
     for attempt in range(3):
         try:
@@ -745,7 +757,7 @@ Make it practical, viral, and optimized for {req.platform}. No markdown, no expl
                 retry_after = min(retry_after, 30)  # Cap at 30s
                 if attempt < 2:
                     logger.warning(
-                        "Groq rate limited (429) — sleeping %.1fs before retry %d/3",
+                        "Gemini rate limited (429) — sleeping %.1fs before retry %d/3",
                         retry_after, attempt + 1,
                     )
                     import time as _time

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
 
 function ConfidenceGauge({ label, value, maxLabel, icon }) {
@@ -21,6 +22,7 @@ function ConfidenceGauge({ label, value, maxLabel, icon }) {
 }
 
 export default function IntelligenceConfidence({ lastRun, connectorData }) {
+  const { t } = useTranslation();
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export default function IntelligenceConfidence({ lastRun, connectorData }) {
   return (
     <div className="icf-section">
       <div className="icf-header">
-        <h3 className="icf-title"><span>📈</span> Intelligence Confidence</h3>
+        <h3 className="icf-title"><span>📈</span>{t('intelligenceConfidence')}</h3>
       </div>
       <div className="icf-grid">
         {gauges.map(g => <ConfidenceGauge key={g.label} {...g} />)}

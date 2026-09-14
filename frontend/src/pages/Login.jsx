@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 export default function Login() {
+  const { t } = useTranslation();
   const { user, loginWithGoogle, loading: authLoading } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,15 +46,13 @@ export default function Login() {
         {/* Logo & Branding */}
         <div className="login-brand">
           <img src="/logo.png" alt="Luna logo" className="login-logo" />
-          <h1 className="login-title">Luna</h1>
-          <p className="login-subtitle">Content Intelligence</p>
+          <h1 className="login-title">{t('luna')}</h1>
+          <p className="login-subtitle">{t('contentIntelligence')}</p>
         </div>
 
         {/* Login Form */}
         <div className="login-form">
-          <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--text-dim)' }}>
-            Continue with your Google account
-          </p>
+          <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--text-dim)' }}>{t('continueWithYourGoogleAccount')}</p>
           
           {error && (
             <div className="login-error">
@@ -78,16 +78,12 @@ export default function Login() {
               </>
             ) : (
               <>
-                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" style={{ width: '24px', height: '24px' }} />
-                Continue with Google
-              </>
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" style={{ width: '24px', height: '24px' }} />{t('continueWithGoogle')}</>
             )}
           </button>
         </div>
 
-        <p className="login-footer">
-          Secured access
-        </p>
+        <p className="login-footer">{t('securedAccess')}</p>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { getRisingTopic } from './trendingUtils';
 
 function Sparkline() {
@@ -5,15 +6,16 @@ function Sparkline() {
 }
 
 export default function TrendingHero({ videos, activeDataset, lastUpdated, onRefresh, onExport, onRunScan, loading }) {
+  const { t } = useTranslation();
   const rising = getRisingTopic(videos);
   const platforms = new Set(videos.map((video) => video.platform).filter(Boolean)).size;
   const workspace = activeDataset?.name || activeDataset?.label || 'All historical data';
   return (
     <header className="tr-hero">
       <div className="tr-hero-copy">
-        <p className="tr-eyebrow">Momentum intelligence</p>
-        <h1><span aria-hidden="true">🔥</span> Trending Content</h1>
-        <p>Discover content gaining momentum before it peaks.</p>
+        <p className="tr-eyebrow">{t('momentumIntelligence')}</p>
+        <h1><span aria-hidden="true">🔥</span>{t('trendingContent')}</h1>
+        <p>{t('discoverContentGainingMomentumBefore')}</p>
         <div className="tr-hero-meta"><span><i className="tr-live-dot" /> {videos.length} trending videos</span><span>⌁ {platforms || 0} platforms</span><span>◷ {lastUpdated ? 'Updated just now' : 'Fetching latest signals'}</span></div>
       </div>
       <section className="tr-rising-topic" aria-label="Fastest rising topic">
@@ -21,8 +23,8 @@ export default function TrendingHero({ videos, activeDataset, lastUpdated, onRef
         <Sparkline />
       </section>
       <div className="tr-hero-actions">
-        <div className="tr-workspace"><i className="tr-live-dot" /><div><small>Active workspace</small><strong>{workspace}</strong></div><span>⌄</span></div>
-        <div className="tr-hero-action-row"><button className="tr-action-button" onClick={onRefresh} disabled={loading}>⟳ <span>{loading ? 'Refreshing' : 'Refresh'}</span></button><button className="tr-action-button" onClick={onExport} disabled={!videos.length}>▤ <span>Export PDF</span></button></div>
+        <div className="tr-workspace"><i className="tr-live-dot" /><div><small>{t('activeWorkspace')}</small><strong>{workspace}</strong></div><span>⌄</span></div>
+        <div className="tr-hero-action-row"><button className="tr-action-button" onClick={onRefresh} disabled={loading}>⟳ <span>{loading ? 'Refreshing' : 'Refresh'}</span></button><button className="tr-action-button" onClick={onExport} disabled={!videos.length}>▤ <span>{t('exportPdf')}</span></button></div>
         <button className="tr-scan-button" onClick={onRunScan}>ϟ Run Trend Scan</button>
       </div>
     </header>

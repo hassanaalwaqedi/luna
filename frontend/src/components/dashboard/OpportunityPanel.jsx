@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 function score(opportunity) {
   return Math.round(Math.max(0, Math.min(1, opportunity.opportunity_score || 0)) * 100);
 }
@@ -29,18 +30,19 @@ function OpportunityRow({ opportunity, index }) {
 }
 
 export default function OpportunityPanel({ opportunities, loading }) {
+  const { t } = useTranslation();
   return (
     <section className="dash-panel dash-opportunity-panel">
       <div className="dash-panel-heading">
-        <h2><span aria-hidden="true">🏆</span> Top Content Opportunities</h2>
-        <button className="dash-see-all" type="button">See all <span aria-hidden="true">↗</span></button>
+        <h2><span aria-hidden="true">🏆</span>{t('topContentOpportunities')}</h2>
+        <button className="dash-see-all" type="button">{t('seeAll')}<span aria-hidden="true">↗</span></button>
       </div>
       <div className="dash-opportunity-list">
         {loading ? [0, 1, 2, 3].map((item) => <span className="dash-skeleton-row" key={item} />) :
           opportunities.length > 0 ? opportunities.slice(0, 6).map((opportunity, index) => (
             <OpportunityRow key={`${opportunity.trend}-${index}`} opportunity={opportunity} index={index} />
           )) : (
-            <div className="dash-empty-panel"><span aria-hidden="true">💡</span><strong>No opportunities found yet</strong><p>More content is needed to identify high-potential topics.</p></div>
+            <div className="dash-empty-panel"><span aria-hidden="true">💡</span><strong>{t('noOpportunitiesFoundYet')}</strong><p>{t('moreContentIsNeededTo')}</p></div>
           )}
       </div>
     </section>
