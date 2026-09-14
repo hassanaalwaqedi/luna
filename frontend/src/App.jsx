@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { DatasetProvider } from './context/DatasetContext';
-import ProtectedRoute from './components/ProtectedRoute';
+
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -20,14 +20,12 @@ export default function App() {
           {/* Public route */}
           <Route path="/login" element={<Login />} />
 
-          {/* Protected routes */}
+          {/* Public application routes */}
           <Route
             element={
-              <ProtectedRoute>
                 <DatasetProvider>
                   <Layout />
                 </DatasetProvider>
-              </ProtectedRoute>
             }
           >
             <Route path="/" element={<Dashboard />} />

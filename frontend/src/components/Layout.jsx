@@ -106,8 +106,31 @@ export default function Layout() {
           <LanguageSwitcher />
           <button className="sidebar-pin-control" onClick={togglePinned} aria-label={isPinned ? t('nav.unpin') : t('nav.pin')} title={isPinned ? t('nav.unpin') : t('nav.pin')}><span aria-hidden="true">{isPinned ? '⊙' : '⊖'}</span><span className="nav-label">{isPinned ? t('nav.pinned') : t('nav.pin')}</span></button>
           <button className="theme-toggle" onClick={() => setTheme((prev) => prev === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')} title={theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}><span className="theme-toggle-icon">{theme === 'dark' ? '☼' : '☾'}</span><span className="nav-label">{theme === 'dark' ? t('nav.lightMode') : t('nav.darkMode')}</span></button>
-          {user && <button className="theme-toggle sidebar-logout" onClick={logout} aria-label={t('nav.logout')} title={t('nav.logout')}><span className="theme-toggle-icon">↪</span><span className="nav-label">{t('nav.logout')}</span></button>}
-          <div className="sidebar-profile" title={user ? `${user.username}, ${t('nav.admin')}` : t('nav.systemOnline')}><span className="health-dot online" aria-hidden="true" /><span className="sidebar-avatar" aria-hidden="true">{user ? user.username.slice(0, 1).toUpperCase() : 'L'}</span><div><strong>{user ? user.username : t('nav.systemOnline')}</strong><span>{user ? t('nav.admin') : t('nav.connected')}</span></div><span className="sidebar-profile-chevron nav-label" aria-hidden="true">⌄</span></div>
+          {user ? (
+            <button className="theme-toggle sidebar-logout" onClick={logout} aria-label={t('nav.logout')} title={t('nav.logout')}>
+              <span className="theme-toggle-icon">🚪</span>
+              <span className="nav-label">{t('nav.logout')}</span>
+            </button>
+          ) : (
+            <NavLink to="/login" className="theme-toggle sidebar-logout" style={{ textDecoration: 'none' }} aria-label="Log In" title="Log In">
+              <span className="theme-toggle-icon">👤</span>
+              <span className="nav-label">Log In</span>
+            </NavLink>
+          )}
+
+          <div className="sidebar-profile" title={user ? `${user.username}, ${t('nav.admin')}` : t('nav.systemOnline')}>
+            <span className="health-dot online" aria-hidden="true" />
+            <span className="sidebar-avatar" aria-hidden="true">
+              {user ? user.username.slice(0, 1).toUpperCase() : 'L'}
+            </span>
+            <div>
+              <strong>{user ? user.username : 'Guest Visitor'}</strong>
+              <span>{user ? t('nav.admin') : 'Unauthenticated'}</span>
+            </div>
+            <span className="sidebar-profile-chevron nav-label" aria-hidden="true">
+              ▾
+            </span>
+          </div>
         </div>
       </aside>
       <main className="main-content"><Outlet /></main>

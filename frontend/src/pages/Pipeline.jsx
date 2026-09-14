@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
 import ConnectorHealthDrawer from '../components/pipeline/ConnectorHealthDrawer';
 import IntelligenceConfidencePanel from '../components/pipeline/IntelligenceConfidencePanel';
@@ -22,6 +23,7 @@ import './Pipeline.css';
 export default function Pipeline() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [config, setConfig] = useState(DEFAULT_PIPELINE_CONFIG);
   const [history, setHistory] = useState([]);
   const [savedConfigs, setSavedConfigs] = useState([]);
@@ -204,6 +206,10 @@ export default function Pipeline() {
   };
 
   const handleTrigger = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
     if (!validation.valid || triggering) return;
     setMessage(null);
     setObservedRun(null);

@@ -6,7 +6,7 @@ export default function DashboardHeader({ refreshing, onRefresh, onOpenPipeline,
   const { t } = useTranslation();
   const { user } = useAuth();
   const [query, setQuery] = useState('');
-  const username = user?.username || 'Admin';
+  const username = user?.username || 'Guest Visitor';
 
   const handleSubmit = (event) => {
     event.preventDefault();
