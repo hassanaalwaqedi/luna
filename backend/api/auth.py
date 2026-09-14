@@ -358,7 +358,14 @@ async def firebase_login(body: FirebaseLoginRequest, response: Response):
             import re
             app_settings = get_settings()
             if app_settings.firebase_project_id and app_settings.firebase_private_key and app_settings.firebase_client_email:
-                raw_key = app_settings.firebase_private_key.replace("\\n", "\n")
+                raw_key = app_settings.firebase_private_key.strip('"').replace("\\n", "\n").strip()
+                
+                # If the user forgot to copy the headers from the JSON file, add them automatically
+                if not raw_key.startswith("-----BEGIN PRIVATE KEY-----"):
+                    raw_key = f"-----BEGIN PRIVATE KEY-----\n{raw_key}"
+                if not raw_key.endswith("-----END PRIVATE KEY-----"):
+                    raw_key = f"{raw_key}\n-----END PRIVATE KEY-----"
+
                 # Aggressively extract just the PEM block in case the user pasted extra JSON syntax or quotes
                 pem_match = re.search(r'(-----BEGIN PRIVATE KEY-----.*?-----END PRIVATE KEY-----)', raw_key, re.DOTALL)
                 clean_key = pem_match.group(1) if pem_match else raw_key
