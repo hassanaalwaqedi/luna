@@ -356,7 +356,17 @@ async def firebase_login(body: FirebaseLoginRequest, response: Response):
             import json
             
             app_settings = get_settings()
-            if app_settings.firebase_credentials_json:
+            if app_settings.firebase_project_id and app_settings.firebase_private_key and app_settings.firebase_client_email:
+                cert_dict = {
+                    "type": "service_account",
+                    "project_id": app_settings.firebase_project_id,
+                    "private_key": app_settings.firebase_private_key.replace("\\n", "\n"),
+                    "client_email": app_settings.firebase_client_email,
+                    "token_uri": "https://oauth2.googleapis.com/token"
+                }
+                cert = credentials.Certificate(cert_dict)
+                firebase_admin.initialize_app(cert)
+            elif app_settings.firebase_credentials_json:
                 cert = credentials.Certificate(json.loads(app_settings.firebase_credentials_json))
                 firebase_admin.initialize_app(cert)
             else:

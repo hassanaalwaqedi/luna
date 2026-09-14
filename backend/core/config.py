@@ -310,6 +310,9 @@ class Settings(BaseSettings):
         default=None,
         description="Optional raw JSON string for Firebase credentials",
     )
+    firebase_project_id: Optional[str] = None
+    firebase_private_key: Optional[str] = None
+    firebase_client_email: Optional[str] = None
 
     # ---- Authentication (single-operator) -----------------------------------
     genx_admin_username: str = Field(
