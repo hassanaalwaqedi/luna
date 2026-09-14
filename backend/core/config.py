@@ -270,7 +270,14 @@ class Settings(BaseSettings):
 
     # ---- Security -----------------------------------------------------------
     cors_allowed_origins: List[str] = Field(
-        default=["http://localhost:5173", "http://127.0.0.1:5173"],
+        default=[
+            "http://localhost:5173", 
+            "http://127.0.0.1:5173",
+            "https://lunaa.web.app",
+            "https://lunaa.firebaseapp.com",
+            "https://luna-ef8a9.web.app",
+            "https://luna-ef8a9.firebaseapp.com"
+        ],
         description="Explicit browser origins permitted to call the API.",
     )
     pipeline_api_key: str = Field(
