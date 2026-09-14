@@ -370,7 +370,7 @@ async def firebase_login(body: FirebaseLoginRequest, response: Response):
         decoded_token = firebase_auth.verify_id_token(body.id_token)
     except Exception as e:
         logger.error(f"Failed to verify Firebase ID token: {e}")
-        raise HTTPException(status_code=401, detail="Invalid Firebase token.")
+        raise HTTPException(status_code=401, detail=f"Invalid Firebase token: {str(e)}")
         
     google_subject_id = decoded_token.get("sub")
     email = decoded_token.get("email")
