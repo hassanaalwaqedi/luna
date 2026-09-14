@@ -1,13 +1,14 @@
-import { createContext, useContext, useState, useCallback } from 'react';
-import { authApi } from '../api/client';
+import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { authApi, clearAuthStorage } from '../api/client';
 
 const AuthContext = createContext(null);
 
-const USER_KEY = 'genx_auth_user';
+const USER_KEY = 'luna_auth_user';
+const LEGACY_USER_KEY = 'genx_auth_user';
 
 function loadUserFromStorage() {
   try {
-    const raw = localStorage.getItem(USER_KEY);
+    const raw = localStorage.getItem(USER_KEY) || localStorage.getItem(LEGACY_USER_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -23,26 +24,76 @@ function saveUserToStorage(user) {
 }
 
 export function AuthProvider({ children }) {
-  // Restore user from localStorage immediately (no API call needed)
-  const [user, setUser] = useState(() => loadUserFromStorage());
-  const loading = false;
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = useCallback(async (username, password) => {
-    const data = await authApi.login(username, password);
-    const u = { username: data.username, expires_at: data.expires_at };
-    setUser(u);
-    saveUserToStorage(u);
-    return data;
+  // Local storage records only the previous login. Verify the JWT before
+  // rendering protected screens, so an expired session returns to login
+  // instead of causing repeated 401 errors in the application.
+  useEffect(() => {
+    let cancelled = false;
+
+    const restoreSession = async () => {
+      const storedUser = loadUserFromStorage();
+      try {
+        const session = await authApi.me();
+        if (!cancelled && session.authenticated) {
+          const restoredUser = {
+            username: session.username || storedUser?.username,
+            expires_at: session.expires_at || storedUser?.expires_at,
+          };
+          setUser(restoredUser);
+          saveUserToStorage(restoredUser);
+          return;
+        }
+      } catch {
+        // An invalid or unavailable session should use the normal login path.
+      }
+
+      if (!cancelled) {
+        clearAuthStorage();
+        setUser(null);
+      }
+    };
+
+    restoreSession().finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+
+  const loginWithGoogle = useCallback(async () => {
+    try {
+      const { signInWithPopup } = await import('firebase/auth');
+      const { auth, googleProvider } = await import('../firebase');
+      
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+      
+      const data = await authApi.firebaseLogin(idToken);
+      const u = { username: data.username, expires_at: data.expires_at };
+      setUser(u);
+      saveUserToStorage(u);
+      return data;
+    } catch (err) {
+      console.error("Failed to start Google login via Firebase", err);
+      throw err;
+    }
   }, []);
 
   const logout = useCallback(async () => {
     try { await authApi.logout(); } catch { /* ignore */ }
+    clearAuthStorage();
     setUser(null);
     saveUserToStorage(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,5 +1,5 @@
 """
-TikTok Connector for the Content Intelligence Platform.
+TikTok Connector for Luna content intelligence.
 
 Uses the Apify TikTok Scraper (clockworks/tiktok-scraper) to fetch
 trending videos, search by keywords, and discover hashtag content.

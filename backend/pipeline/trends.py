@@ -1,5 +1,5 @@
 """
-Trend Discovery & Opportunity Engine for Content Intelligence Platform.
+Trend Discovery & Opportunity Engine for Luna.
 
 Provides:
   - Topic-based trend clustering from video data

@@ -1,5 +1,5 @@
 """
-Content Relevance Scoring Engine for the Content Intelligence Platform.
+Content Relevance Scoring Engine for Luna.
 
 Scores every piece of ingested content against the user's query context
 to determine how relevant it is to the original search intent.

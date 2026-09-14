@@ -1,5 +1,5 @@
 """
-Reddit Connector for the Content Intelligence Platform.
+Reddit Connector for Luna content intelligence.
 
 Uses an Apify Reddit Scraper to fetch trending posts, search
 by keywords, and discover subreddit content. Replaces the

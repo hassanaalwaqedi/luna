@@ -27,7 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 
-from api.auth import auth_router, require_auth
+from api.auth import auth_router, require_auth, require_admin
 from api.creators import creators_router
 from api.datasets import datasets_router, resolve_dataset_id
 from api.middleware import RequestProtectionMiddleware
@@ -142,7 +142,9 @@ async def _verify_pipeline_access(
 
     # The browser client already sends its JWT/cookie. Keeping the shared key
     # as an alternative preserves service-to-service automation.
-    await require_auth(request, request.cookies.get("genx_session"))
+    user = await require_auth(request, request.cookies.get("luna_session"), request.cookies.get("genx_session"))
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Administrator privileges required.")
 
 
 # ---------------------------------------------------------------------------
@@ -361,7 +363,7 @@ class RedditScanRequest(BaseModel):
     "/pipeline/config",
     tags=["Pipeline Config"],
     summary="Create or update a pipeline config",
-    dependencies=[Depends(require_auth)],
+    dependencies=[Depends(require_admin)],
 )
 async def create_pipeline_config(req: PipelineConfigRequest):
     """Save a pipeline configuration with validation."""
@@ -451,7 +453,7 @@ async def run_reddit_scan(request: RedditScanRequest) -> PipelineRunResponse:
     "/pipeline/config/{config_id}",
     tags=["Pipeline Config"],
     summary="Delete a pipeline config",
-    dependencies=[Depends(require_auth)],
+    dependencies=[Depends(require_admin)],
 )
 async def delete_config(config_id: int):
     deleted = delete_pipeline_config(config_id)

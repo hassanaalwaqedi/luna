@@ -1,5 +1,5 @@
 """
-Query Intelligence Engine for the Content Intelligence Platform.
+Query Intelligence Engine for Luna.
 
 Transforms raw user keywords into platform-optimized search variants,
 synonym expansions, and relevance matching term sets.  Entirely local —

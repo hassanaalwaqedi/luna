@@ -1,5 +1,5 @@
 """
-Connector Architecture for Content Intelligence Platform.
+Connector Architecture for Luna content intelligence.
 
 Provides a unified, plugin-based system for ingesting content from
 multiple platforms (YouTube, Reddit, TikTok, Instagram, etc.) through

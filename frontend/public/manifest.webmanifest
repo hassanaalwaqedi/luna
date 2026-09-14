@@ -1,0 +1,17 @@
+{
+  "name": "Luna Content Intelligence",
+  "short_name": "Luna",
+  "description": "AI-powered content intelligence for strategic insights and content analytics.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070817",
+  "theme_color": "#070817",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

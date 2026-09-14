@@ -1,5 +1,5 @@
 """
-Ingestion module for Content Intelligence Platform.
+Ingestion module for Luna content intelligence.
 
 Fetches **globally trending** videos from YouTube Data API v3 using
 the `videos.list(chart=mostPopular)` endpoint across curated regions

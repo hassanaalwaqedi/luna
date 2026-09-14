@@ -30,7 +30,7 @@ endpoints continue to work, and equivalent `/v1/...` aliases are now available.
 
 ### Dashboard and navigation
 
-- Rebuilt the main Intelligence Center dashboard into the GenX dark analytics
+- Rebuilt the main Intelligence Center dashboard into Luna's dark analytics
   design system.
 - Added a shared application layout, workspace switcher, platform navigation,
   authentication state, and dataset context.

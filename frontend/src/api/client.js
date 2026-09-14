@@ -1,5 +1,5 @@
 /**
- * API client for Content Intelligence Platform.
+ * API client for Luna content intelligence.
  * Wraps all backend endpoints with error handling.
  * All data endpoints support dataset_id for workspace scoping.
  *
@@ -10,18 +10,29 @@
 // In production, set VITE_API_URL to the actual backend URL.
 const BASE_URL = import.meta.env.VITE_API_URL || '';
 
-const TOKEN_KEY = 'genx_auth_token';
+const TOKEN_KEY = 'luna_auth_token';
+const LEGACY_TOKEN_KEY = 'genx_auth_token';
 
 function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_TOKEN_KEY);
 }
 
 function setToken(token) {
-  if (token) localStorage.setItem(TOKEN_KEY, token);
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+  }
 }
 
 function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
+}
+
+export function clearAuthStorage() {
+  clearToken();
+  localStorage.removeItem('luna_auth_user');
+  localStorage.removeItem('genx_auth_user');
 }
 
 async function request(endpoint, options = {}) {
@@ -61,6 +72,7 @@ function _appendDatasetId(params, datasetId) {
   }
 }
 
+
 // ---- Auth API ----
 export const authApi = {
   login: (username, password) => {
@@ -82,9 +94,22 @@ export const authApi = {
     });
   },
 
+  firebaseLogin: (idToken) => {
+    return fetch(`${BASE_URL}/auth/firebase/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ id_token: idToken }),
+    }).then(async (res) => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Firebase login failed on backend');
+      if (data.token) setToken(data.token);
+      return data;
+    });
+  },
+
   logout: () => {
-    clearToken();
-    localStorage.removeItem('genx_auth_user');
+    clearAuthStorage();
     const headers = {};
 
     return fetch(`${BASE_URL}/auth/logout`, {
@@ -92,6 +117,21 @@ export const authApi = {
       headers,
       credentials: 'include',
     }).then((res) => res.json());
+  },
+
+  me: () => {
+    const token = getToken();
+    const headers = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    return fetch(`${BASE_URL}/auth/me`, {
+      headers,
+      credentials: 'include',
+    }).then(async (res) => {
+      const data = await res.json().catch(() => ({ authenticated: false }));
+      if (!res.ok) throw new Error(data.detail || 'Unable to restore session');
+      return data;
+    });
   },
 
 };

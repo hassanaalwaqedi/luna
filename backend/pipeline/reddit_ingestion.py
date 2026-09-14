@@ -1,5 +1,5 @@
 """
-Reddit ingestion module for Content Intelligence Platform.
+Reddit ingestion module for Luna content intelligence.
 
 Fetches posts from Reddit using OAuth2 API with:
   - Subreddit search by niche keywords

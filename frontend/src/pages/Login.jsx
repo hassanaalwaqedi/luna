@@ -4,9 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import './Login.css';
 
 export default function Login() {
-  const { user, login, loading: authLoading } = useAuth();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const { user, loginWithGoogle, loading: authLoading } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,16 +21,15 @@ export default function Login() {
   }
   if (user) return <Navigate to="/" replace />;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
 
     try {
-      await login(username, password);
+      await loginWithGoogle();
+      // the window will redirect, so we keep loading true
     } catch (err) {
-      setError(err.message || 'Invalid credentials');
-    } finally {
+      setError(err.message || 'Failed to start authentication');
       setLoading(false);
     }
   };
@@ -46,71 +43,50 @@ export default function Login() {
       <div className="login-container">
         {/* Logo & Branding */}
         <div className="login-brand">
-          <img src="/logo.png" alt="GenX" className="login-logo" />
-          <h1 className="login-title">GenX</h1>
-          <p className="login-subtitle">Intelligence Platform</p>
+          <img src="/logo.png" alt="Luna logo" className="login-logo" />
+          <h1 className="login-title">Luna</h1>
+          <p className="login-subtitle">Content Intelligence</p>
         </div>
 
         {/* Login Form */}
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="login-field">
-            <label htmlFor="login-username">Username</label>
-            <div className="login-input-wrap">
-              <span className="login-input-icon">👤</span>
-              <input
-                id="login-username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
-                autoComplete="username"
-                autoFocus
-                required
-              />
-            </div>
-          </div>
-
-          <div className="login-field">
-            <label htmlFor="login-password">Password</label>
-            <div className="login-input-wrap">
-              <span className="login-input-icon">🔒</span>
-              <input
-                id="login-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                autoComplete="current-password"
-                required
-              />
-            </div>
-          </div>
-
+        <div className="login-form">
+          <p style={{ textAlign: 'center', marginBottom: '1.5rem', color: 'var(--text-dim)' }}>
+            Continue with your Google account
+          </p>
+          
           {error && (
             <div className="login-error">
               <span className="login-error-icon">⚠</span>
-              {error}
+              {error === 'invalid_state' && 'Authentication state mismatch. Please try again.'}
+              {error === 'auth_failed' && 'Authentication failed. Please try again.'}
+              {error === 'invalid_profile' && 'Unable to read your Google profile.'}
+              {![ 'invalid_state', 'auth_failed', 'invalid_profile' ].includes(error) && error}
             </div>
           )}
 
           <button
-            type="submit"
+            type="button"
             className="login-btn"
-            disabled={loading || !username || !password}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', backgroundColor: '#ffffff', color: '#1f2937', fontWeight: 500 }}
+            onClick={handleGoogleLogin}
+            disabled={loading}
           >
             {loading ? (
               <>
                 <span className="login-btn-spinner" />
-                Authenticating…
+                Connecting…
               </>
             ) : (
-              <>🚀 Access Platform</>
+              <>
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" style={{ width: '24px', height: '24px' }} />
+                Continue with Google
+              </>
             )}
           </button>
-        </form>
+        </div>
 
         <p className="login-footer">
-          Secured access · Single-operator mode
+          Secured access
         </p>
       </div>
     </div>

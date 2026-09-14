@@ -4,8 +4,8 @@ export default function TopContentHeader({ activeDataset, count, onRefresh, onEx
     <header className="tc-page-header">
       <div>
         <p className="tc-eyebrow">Content discovery</p>
-        <h1>Top Content</h1>
-        <p>Discover the highest-performing content, emerging formats, and reusable creative opportunities.</p>
+        <h1>Top Content <span aria-hidden="true">✨</span></h1>
+        <p>Discover what&apos;s getting attention before everyone else.</p>
       </div>
       <div className="tc-header-actions">
         <div className="tc-workspace-control" title={workspace}>

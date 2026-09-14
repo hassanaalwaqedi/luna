@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { exportToPDF } from '../api/export';
 import ContentGeneratorModal from '../components/ContentGeneratorModal';
@@ -19,13 +19,14 @@ const DEFAULT_FILTERS = { region: '', category: '', content_type: '' };
 export default function Trending() {
   const { datasetId, activeDataset } = useDataset();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [days, setDays] = useState(90);
   const [videos, setVideos] = useState([]);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [niches, setNiches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [requestError, setRequestError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('query') || '');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [platformFilter, setPlatformFilter] = useState('');
   const [minScore, setMinScore] = useState(0);
@@ -39,6 +40,11 @@ export default function Trending() {
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [transcriptError, setTranscriptError] = useState(null);
   const [generateVideo, setGenerateVideo] = useState(null);
+
+  useEffect(() => {
+    const query = searchParams.get('query') || '';
+    if (query !== searchTerm) setSearchTerm(query);
+  }, [searchParams, searchTerm]);
 
   const globalFilters = useMemo(() => ({ ...DEFAULT_FILTERS, category, content_type: contentType }), [category, contentType]);
 

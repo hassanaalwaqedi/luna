@@ -34,12 +34,12 @@ export function exportToPDF(filename, title, subtitle, headers, rows) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(212, 168, 67); // Golden brand color
-  doc.text('GenX Leadership Academy', 14, 14);
+  doc.text('Luna', 14, 14);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(139, 144, 160);
-  doc.text('CONTENT INTELLIGENCE PLATFORM', 14, 20);
+  doc.text('CONTENT INTELLIGENCE', 14, 20);
 
   doc.setFontSize(8);
   doc.setTextColor(139, 144, 160);
@@ -93,7 +93,7 @@ export function exportToPDF(filename, title, subtitle, headers, rows) {
       doc.setFontSize(7);
       doc.setTextColor(160, 160, 160);
       doc.text(
-        `GenX Leadership Academy  •  Content Intelligence  •  Page ${doc.internal.getCurrentPageInfo().pageNumber}`,
+        `Luna  •  Content Intelligence  •  Page ${doc.internal.getCurrentPageInfo().pageNumber}`,
         pageWidth / 2,
         pageHeight - 8,
         { align: 'center' }
@@ -163,12 +163,12 @@ export function exportTranscriptPDF(video) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
   doc.setTextColor(...gold);
-  doc.text('GenX', mx, 18);
+  doc.text('Luna', mx, 18);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(...muted);
-  doc.text('LEADERSHIP ACADEMY', mx, 24);
+  doc.text('CONTENT INTELLIGENCE', mx, 24);
 
   // Right side header info
   doc.setFontSize(8);
@@ -360,7 +360,7 @@ function addFooter(doc, pw, ph) {
   doc.setFontSize(6.5);
   doc.setTextColor(160, 160, 160);
   doc.text(
-    `GenX Leadership Academy  •  Content Intelligence Platform  •  Page ${doc.internal.getCurrentPageInfo().pageNumber}`,
+    `Luna  •  Content Intelligence  •  Page ${doc.internal.getCurrentPageInfo().pageNumber}`,
     pw / 2,
     ph - 6,
     { align: 'center' }

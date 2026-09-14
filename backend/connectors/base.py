@@ -1,5 +1,5 @@
 """
-Abstract Base Connector for the Content Intelligence Platform.
+Abstract Base Connector for Luna content intelligence.
 
 Defines the contract that ALL platform connectors must implement.
 Provides built-in utilities for:

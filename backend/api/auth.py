@@ -1,5 +1,17 @@
 """
-Authentication module for the GenX Intelligence Platform.
+Authentication module for Luna.
+
+Provides:
+    - JWT-based session management via HttpOnly cookies
+    - Single-operator credential validation
+    - Rate limiting on login attempts
+    - FastAPI dependency for route protection
+
+Usage:
+    from auth import auth_router, require_auth
+
+    app.include_router(auth_router)
+
 
 Provides:
     - JWT-based session management via HttpOnly cookies
@@ -22,13 +34,22 @@ import hmac
 import logging
 import os
 import time
+import uuid
+import secrets
+import urllib.parse
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Optional
 
+import httpx
 import jwt
-from fastapi import APIRouter, Cookie, HTTPException, Request, Response
+from fastapi import APIRouter, Cookie, HTTPException, Request, Response, Depends
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
+import firebase_admin
+from firebase_admin import auth as firebase_auth
+
+from core import database
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +89,9 @@ def _get_auth_settings():
         "username": s.genx_admin_username,
         "password": s.genx_admin_password,
         "secret": secret,
+        "google_client_id": s.google_client_id,
+        "google_client_secret": s.google_client_secret,
+        "app_base_url": s.app_base_url,
     }
 
 
@@ -127,7 +151,8 @@ def _clear_failed_attempts(client_ip: str) -> None:
 # ---------------------------------------------------------------------------
 # Cookie helpers
 # ---------------------------------------------------------------------------
-_COOKIE_NAME = "genx_session"
+_COOKIE_NAME = "luna_session"
+_LEGACY_COOKIE_NAME = "genx_session"
 
 
 def _is_production() -> bool:
@@ -152,13 +177,14 @@ def _set_auth_cookie(response: Response, token: str) -> None:
 def _clear_auth_cookie(response: Response) -> None:
     """Clear the session cookie."""
     prod = _is_production()
-    response.delete_cookie(
-        key=_COOKIE_NAME,
-        httponly=True,
-        samesite="none" if prod else "lax",
-        secure=prod,
-        path="/",
-    )
+    for cookie_name in (_COOKIE_NAME, _LEGACY_COOKIE_NAME):
+        response.delete_cookie(
+            key=cookie_name,
+            httponly=True,
+            samesite="none" if prod else "lax",
+            secure=prod,
+            path="/",
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -167,6 +193,10 @@ def _clear_auth_cookie(response: Response) -> None:
 class LoginRequest(BaseModel):
     username: str
     password: str
+
+
+class FirebaseLoginRequest(BaseModel):
+    id_token: str
 
 
 class AuthStatus(BaseModel):
@@ -181,12 +211,14 @@ class AuthStatus(BaseModel):
 # ---------------------------------------------------------------------------
 async def require_auth(
     request: Request,
-    genx_session: Optional[str] = Cookie(None),
+    luna_session: Optional[str] = Cookie(None),
+    legacy_session: Optional[str] = Cookie(None, alias=_LEGACY_COOKIE_NAME),
 ) -> Dict[str, Any]:
     """
     FastAPI dependency that validates auth via:
       1. Authorization: Bearer <token> header (cross-origin / production)
-      2. genx_session cookie (same-origin / development)
+      2. Luna session cookie (same-origin / development)
+         Legacy session cookies remain accepted for existing sessions.
     """
     settings = _get_auth_settings()
     token = None
@@ -197,8 +229,8 @@ async def require_auth(
         token = auth_header[7:]
 
     # 2. Fallback to cookie
-    if not token and genx_session:
-        token = genx_session
+    if not token:
+        token = luna_session or legacy_session
 
     if not token:
         raise HTTPException(status_code=401, detail="Authentication required.")
@@ -208,7 +240,31 @@ async def require_auth(
     if payload is None:
         raise HTTPException(status_code=401, detail="Session expired or invalid.")
 
-    return payload
+    sub = payload.get("sub")
+    if not sub:
+        raise HTTPException(status_code=401, detail="Invalid token payload.")
+        
+    # Legacy / Environment admin check
+    if sub == settings["username"] and settings["username"]:
+        return {"id": sub, "role": "admin", "email": sub, "username": sub}
+        
+    # Database user check
+    user = database.get_user_by_id(sub)
+    if not user:
+        raise HTTPException(status_code=401, detail="User no longer exists.")
+        
+    return user
+
+
+async def require_admin(
+    user: Dict[str, Any] = Depends(require_auth)
+) -> Dict[str, Any]:
+    """
+    FastAPI dependency that requires admin privileges.
+    """
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Administrator privileges required.")
+    return user
 
 
 # ---------------------------------------------------------------------------
@@ -240,7 +296,7 @@ async def login(body: LoginRequest, request: Request, response: Response):
         logger.error("Auth credentials not configured in .env")
         raise HTTPException(
             status_code=500,
-            detail="Authentication not configured. Set GENX_ADMIN_USERNAME and GENX_ADMIN_PASSWORD in .env",
+            detail="Authentication not configured. Set LUNA_ADMIN_USERNAME and LUNA_ADMIN_PASSWORD in .env",
         )
 
     # Timing-safe credential comparison
@@ -287,10 +343,76 @@ async def logout(response: Response):
     return AuthStatus(authenticated=False)
 
 
+@auth_router.post("/firebase/login", response_model=AuthStatus)
+async def firebase_login(body: FirebaseLoginRequest, response: Response):
+    """Handle Firebase login by verifying ID token and establishing backend session."""
+    settings = _get_auth_settings()
+    
+    # Initialize Firebase Admin SDK if not already done
+    try:
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app()
+    except Exception as e:
+        logger.error(f"Failed to initialize Firebase Admin SDK: {e}")
+        raise HTTPException(status_code=500, detail="Authentication server configuration error.")
+    
+    try:
+        # Verify the Firebase ID token
+        decoded_token = firebase_auth.verify_id_token(body.id_token)
+    except Exception as e:
+        logger.error(f"Failed to verify Firebase ID token: {e}")
+        raise HTTPException(status_code=401, detail="Invalid Firebase token.")
+        
+    google_subject_id = decoded_token.get("sub")
+    email = decoded_token.get("email")
+    display_name = decoded_token.get("name", "")
+    avatar = decoded_token.get("picture", "")
+    
+    if not google_subject_id or not email:
+        logger.error("Missing subject ID or email in Google profile.")
+        raise HTTPException(status_code=400, detail="Incomplete Google profile.")
+        
+    # Link or create user
+    user = database.get_user_by_google_id(google_subject_id)
+    if not user:
+        # Match legacy email to grant admin
+        role = "admin" if email == settings["username"] else "user"
+        
+        existing = database.get_user_by_email(email)
+        if existing:
+            database.update_user_google_id(existing["id"], google_subject_id)
+            user_id = existing["id"]
+        else:
+            user_id = str(uuid.uuid4())
+            database.create_user(
+                user_id=user_id,
+                email=email,
+                display_name=display_name,
+                avatar=avatar,
+                google_subject_id=google_subject_id,
+                role=role,
+            )
+    else:
+        user_id = user["id"]
+        
+    token = _create_token(user_id, settings["secret"])
+    _set_auth_cookie(response, token)
+    
+    exp_time = datetime.now(timezone.utc) + timedelta(hours=_SESSION_LIFETIME_HOURS)
+    
+    return AuthStatus(
+        authenticated=True,
+        username=email,
+        expires_at=exp_time.isoformat(),
+        token=token,
+    )
+
+
 @auth_router.get("/me", response_model=AuthStatus)
 async def me(
     request: Request,
-    genx_session: Optional[str] = Cookie(None),
+    luna_session: Optional[str] = Cookie(None),
+    legacy_session: Optional[str] = Cookie(None, alias=_LEGACY_COOKIE_NAME),
 ):
     """
     Check current authentication status.
@@ -305,8 +427,8 @@ async def me(
         token = auth_header[7:]
 
     # Fallback to cookie
-    if not token and genx_session:
-        token = genx_session
+    if not token:
+        token = luna_session or legacy_session
 
     if not token:
         return AuthStatus(authenticated=False)
@@ -316,9 +438,20 @@ async def me(
     if payload is None:
         return AuthStatus(authenticated=False)
 
+    # Legacy sub handling
+    sub = payload.get("sub")
+    if sub == settings["username"] and settings["username"]:
+        username = sub
+    else:
+        user = database.get_user_by_id(sub)
+        username = user["email"] if user else None
+
+    if not username:
+        return AuthStatus(authenticated=False)
+
     exp_time = datetime.fromtimestamp(payload.get("exp", 0), tz=timezone.utc)
     return AuthStatus(
         authenticated=True,
-        username=payload.get("sub"),
+        username=username,
         expires_at=exp_time.isoformat(),
     )

@@ -7,7 +7,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from api.auth import require_auth
+from api.auth import require_admin
 from core.database import get_active_dataset, get_dataset_list, get_dataset_stats, set_active_dataset
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ async def active_dataset():
 @datasets_router.post(
     "/{run_id}/activate",
     summary="Set a pipeline run as active dataset",
-    dependencies=[Depends(require_auth)],
+    dependencies=[Depends(require_admin)],
 )
 async def activate_dataset(run_id: int):
     try:

@@ -1,5 +1,5 @@
 """
-Query module for Content Intelligence Platform.
+Query module for Luna content intelligence.
 
 Provides high-level, typed query functions against the videos database.
 Each function returns a list of dicts suitable for API serialization.

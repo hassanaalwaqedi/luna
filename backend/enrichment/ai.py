@@ -1,5 +1,5 @@
 """
-AI Enrichment module for Content Intelligence Platform.
+AI Enrichment module for Luna content intelligence.
 
 Uses Groq's fast LLM inference API for:
   - Strategic content analysis (target audience, actionable advice, gaps)

@@ -1,5 +1,5 @@
 """
-YouTube Connector for the Content Intelligence Platform.
+YouTube Connector for Luna content intelligence.
 
 Adapter that wraps the existing YouTubeClient from ingestion.py
 into the BaseConnector interface. Does NOT rewrite the YouTube

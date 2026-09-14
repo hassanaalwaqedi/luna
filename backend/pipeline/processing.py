@@ -1,5 +1,5 @@
 """
-Processing module for Content Intelligence Platform.
+Processing module for Luna content intelligence.
 
 Responsibilities:
   - Clean and validate raw video data

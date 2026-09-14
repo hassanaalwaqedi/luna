@@ -1,6 +1,6 @@
 # Intelligent-Trends
 
-Intelligent-Trends is a content intelligence platform for discovering high-performing and emerging video content across YouTube, TikTok, Instagram, and Reddit.
+Luna is a content intelligence product for discovering high-performing and emerging video content across YouTube, TikTok, Instagram, and Reddit.
 
 It combines platform connectors, trend scoring, transcript processing, AI enrichment, and a React dashboard for exploring videos, creators, trends, and pipeline results.
 
@@ -48,10 +48,10 @@ frontend/
 Create `backend/.env` and add the required credentials:
 
 ```env
-GENX_ADMIN_USERNAME=admin
-GENX_ADMIN_PASSWORD=use-a-unique-password
+LUNA_ADMIN_USERNAME=admin
+LUNA_ADMIN_PASSWORD=use-a-unique-password
 # At least 32 random characters; do not reuse the admin password.
-GENX_AUTH_SECRET=use-a-long-random-secret-at-least-32-characters
+LUNA_AUTH_SECRET=use-a-long-random-secret-at-least-32-characters
 
 YOUTUBE_API_KEY=your-youtube-api-key
 GROQ_API_KEY=your-groq-api-key

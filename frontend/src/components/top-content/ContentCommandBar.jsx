@@ -20,7 +20,7 @@ export default function ContentCommandBar({
   return (
     <section className="tc-command-bar" aria-label="Top content controls">
       <div className="tc-command-main">
-        <label className="tc-search-field"><span>⌕</span><input value={searchTerm} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search by title, creator, keyword, hashtag..." /></label>
+        <label className="tc-search-field"><span>⌕</span><input value={searchTerm} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search videos, creators, hashtags, trends..." /></label>
         <select value={selectedNiche} onChange={(event) => onNicheChange(event.target.value)} aria-label="Category">
           <option value="">All categories</option>
           {niches.map((niche) => <option key={niche} value={niche}>{niche}</option>)}

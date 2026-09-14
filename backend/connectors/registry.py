@@ -1,5 +1,5 @@
 """
-Connector Registry for the Content Intelligence Platform.
+Connector Registry for Luna content intelligence.
 
 Auto-discovers available connectors based on configured credentials
 and provides a single access point for the pipeline to obtain

@@ -1,6 +1,6 @@
 # Backend
 
-Python backend for the Content Intelligence Platform. Built with FastAPI, SQLite, and Groq AI.
+Python backend for Luna. Built with FastAPI, SQLite, and Groq AI.
 
 ## Architecture
 

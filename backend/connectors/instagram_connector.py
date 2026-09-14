@@ -1,5 +1,5 @@
 """
-Instagram Connector for the Content Intelligence Platform.
+Instagram Connector for Luna content intelligence.
 
 Uses the Apify Instagram Scraper to fetch public Instagram content.
 This replaces the previous RapidAPI-based connector with a more

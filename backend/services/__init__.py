@@ -1,5 +1,5 @@
 """
-Services layer for the Content Intelligence Platform.
+Services layer for Luna content intelligence.
 
 Provides higher-level intelligence services that orchestrate
 across connectors and analytics engines:

@@ -1,5 +1,5 @@
 """
-Transcript extraction module for Content Intelligence Platform.
+Transcript extraction module for Luna content intelligence.
 
 Fetches video transcripts/captions from YouTube using the
 youtube-transcript-api library (no API key required).

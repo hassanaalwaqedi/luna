@@ -1,5 +1,5 @@
 """
-Analytics engines for the Content Intelligence Platform.
+Analytics engines for Luna content intelligence.
 
 Provides platform-agnostic analytics that operate on NormalizedContent:
     - ContentRelevanceEngine: Query-aware relevance scoring

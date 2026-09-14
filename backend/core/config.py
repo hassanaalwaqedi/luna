@@ -283,6 +283,20 @@ class Settings(BaseSettings):
         description="Rolling rate-limit window in seconds.",
     )
 
+    # ---- Google Authentication ----------------------------------------------
+    google_client_id: str = Field(
+        default="",
+        description="Google OAuth Client ID",
+    )
+    google_client_secret: str = Field(
+        default="",
+        description="Google OAuth Client Secret",
+    )
+    app_base_url: str = Field(
+        default="http://localhost:5173",
+        description="Application base URL for constructing the redirect URI",
+    )
+
     # ---- Authentication (single-operator) -----------------------------------
     genx_admin_username: str = Field(
         default="",

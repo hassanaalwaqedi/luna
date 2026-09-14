@@ -23,6 +23,17 @@ logger = logging.getLogger(__name__)
 # Schema
 # ---------------------------------------------------------------------------
 _CREATE_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS users (
+    id                  TEXT PRIMARY KEY,
+    email               TEXT NOT NULL UNIQUE,
+    display_name        TEXT,
+    avatar              TEXT,
+    google_subject_id   TEXT UNIQUE,
+    role                TEXT NOT NULL DEFAULT 'user',
+    created_at          TEXT NOT NULL,
+    updated_at          TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS videos (
     video_id        TEXT PRIMARY KEY,
     platform        TEXT NOT NULL DEFAULT 'youtube',
@@ -260,6 +271,20 @@ def init_db() -> None:
 
         # Step 2: Migrate — add any missing columns to existing tables
         _apply_migrations(conn)
+
+        # Create users table if missing from previous schema
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id                  TEXT PRIMARY KEY,
+                email               TEXT NOT NULL UNIQUE,
+                display_name        TEXT,
+                avatar              TEXT,
+                google_subject_id   TEXT UNIQUE,
+                role                TEXT NOT NULL DEFAULT 'user',
+                created_at          TEXT NOT NULL,
+                updated_at          TEXT NOT NULL
+            );
+        """)
 
         # Step 3: Create indexes (after migration ensures columns exist)
         _safe_create_indexes(conn)
@@ -799,6 +824,56 @@ def get_dataset_stats(run_id: int) -> Dict[str, Any]:
     stats["top_category"] = cat_row["niche"] if cat_row else ""
     stats["top_creator"] = creator_row["channel"] if creator_row else ""
     return stats
+
+
+# ---------------------------------------------------------------------------
+# User Management
+# ---------------------------------------------------------------------------
+def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
+    with get_connection() as conn:
+        row = conn.execute("SELECT * FROM users WHERE id = ?;", (user_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def get_user_by_google_id(google_id: str) -> Optional[Dict[str, Any]]:
+    with get_connection() as conn:
+        row = conn.execute("SELECT * FROM users WHERE google_subject_id = ?;", (google_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+    with get_connection() as conn:
+        row = conn.execute("SELECT * FROM users WHERE email = ?;", (email,)).fetchone()
+    return dict(row) if row else None
+
+
+def create_user(
+    user_id: str,
+    email: str,
+    display_name: str,
+    avatar: str,
+    google_subject_id: str,
+    role: str = "user",
+) -> str:
+    now = datetime.now(timezone.utc).isoformat()
+    with get_connection() as conn:
+        conn.execute(
+            """INSERT INTO users
+               (id, email, display_name, avatar, google_subject_id, role, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (user_id, email, display_name, avatar, google_subject_id, role, now, now),
+        )
+    return user_id
+
+
+def update_user_google_id(user_id: str, google_subject_id: str) -> None:
+    now = datetime.now(timezone.utc).isoformat()
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE users SET google_subject_id = ?, updated_at = ? WHERE id = ?;",
+            (google_subject_id, now, user_id),
+        )
+
 
 
 def generate_dataset_label(config: Dict[str, Any]) -> str:

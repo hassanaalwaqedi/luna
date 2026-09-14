@@ -1,5 +1,5 @@
 """
-Scheduler module for Content Intelligence Platform.
+Scheduler module for Luna content intelligence.
 
 Runs the data pipeline on a configurable daily schedule using the
 ``schedule`` library. Supports graceful shutdown via signal handlers.

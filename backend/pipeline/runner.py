@@ -1,5 +1,5 @@
 """
-Pipeline runner for Content Intelligence Platform.
+Pipeline runner for Luna content intelligence.
 
 Orchestrates the full ETL flow:
   1. Purge stale YouTube data (freshness guarantee)
@@ -328,7 +328,7 @@ def main() -> None:
     _configure_logging()
     settings = get_settings()
 
-    logger.info("Content Intelligence Platform v1.1.0")
+    logger.info("Luna v1.1.0")
     logger.info("Strategy: Global trending ingestion (mostPopular, NO niche bias)")
     logger.info("Regions: %s", ", ".join(["US", "GB", "CA", "DE", "FR", "AU", "AE"]))
     logger.info("Database: %s", settings.sqlite_db_path)

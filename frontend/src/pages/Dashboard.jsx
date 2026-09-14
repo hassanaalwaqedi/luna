@@ -6,9 +6,9 @@ import { fmt } from '../utils/platform';
 import DashboardHeader from '../components/dashboard/DashboardHeader';
 import WorkspaceContextBar from '../components/dashboard/WorkspaceContextBar';
 import MetricCard from '../components/dashboard/MetricCard';
-import LiveTrendsSection from '../components/dashboard/LiveTrendsSection';
+import LiveTrendsSection, { LiveFeedSection } from '../components/dashboard/LiveTrendsSection';
 import OpportunityPanel from '../components/dashboard/OpportunityPanel';
-import { NicheDistributionPanel, TrendDistributionPanel } from '../components/dashboard/AnalyticsPanels';
+import { NicheDistributionPanel, PlatformDistributionPanel, TrendDistributionPanel, ViralHeatmapPanel } from '../components/dashboard/AnalyticsPanels';
 import InsightSignalsPanel from '../components/dashboard/InsightSignalsPanel';
 import './Dashboard.css';
 
@@ -75,12 +75,6 @@ export default function Dashboard() {
   const trends = useMemo(() => trendsResponse?.trends || [], [trendsResponse]);
   const opportunities = useMemo(() => opportunitiesResponse?.opportunities || [], [opportunitiesResponse]);
   const totalVideos = datasetStats?.total_videos ?? stats?.total_videos ?? 0;
-  const quality = useMemo(() => {
-    const niches = Object.values(stats?.niche_stats || {});
-    if (niches.length === 0) return null;
-    const value = niches.reduce((sum, niche) => sum + (niche.avg_score || 0), 0) / niches.length;
-    return value.toFixed(3);
-  }, [stats]);
   const trendChartData = useMemo(() => trends.slice(0, 8).map((trend) => ({
     name: trend.trend.length > 17 ? `${trend.trend.slice(0, 17)}…` : trend.trend,
     fullName: trend.trend,
@@ -93,7 +87,6 @@ export default function Dashboard() {
   })), [stats]);
   const drivers = useMemo(() => [...new Set(opportunities.flatMap((opportunity) => opportunity.reasons || []))], [opportunities]);
   const topOpportunity = opportunities[0];
-  const emerging = trends.length > 1 ? trends[1]?.trend : trends[0]?.trend || null;
 
   return (
     <main className="dashboard-page">
@@ -101,6 +94,7 @@ export default function Dashboard() {
         refreshing={refreshing}
         onRefresh={() => loadDashboard(true)}
         onOpenPipeline={() => navigate('/pipeline')}
+        onSearch={(query) => navigate(`/trending?query=${encodeURIComponent(query)}`)}
       />
 
       <WorkspaceContextBar dataset={activeDataset} totalVideos={totalVideos} />
@@ -109,11 +103,10 @@ export default function Dashboard() {
         <>
           {loading && !stats ? <DashboardSkeleton /> : (
             <section className="dash-metrics-grid" aria-label="Intelligence metrics">
-              <MetricCard icon="▥" label="Active Trends" value={trends.length} description={`Topics detected from ${trendsResponse?.total_videos_analyzed || 0} content items`} tone="blue" />
-              <MetricCard icon="◎" label="Top Opportunity" value={topOpportunity ? `${Math.round((topOpportunity.opportunity_score || 0) * 100)}%` : null} description={topOpportunity?.trend || 'Waiting for opportunity data'} tone="green" />
-              <MetricCard icon="★" label="Emerging Trend" value={emerging} description={emerging ? 'Fastest-growing topic' : 'No emerging trend detected'} tone="purple" />
-              <MetricCard icon="◇" label="Avg Content Quality" value={quality} description={`Weighted across ${stats?.total_niches || 0} niches`} tone="amber" />
-              <MetricCard icon="▤" label="Total Content" value={fmt(totalVideos)} description={stats?.platform_stats ? Object.entries(stats.platform_stats).map(([platform, count]) => `${count} ${platform}`).join(' · ') : 'No platform data yet'} tone="cyan" className="dash-metric-total" />
+              <MetricCard icon="⌁" label="Active Trends" value={trends.length} description={`+${trendsResponse?.count || 0} signals across ${trendsResponse?.total_videos_analyzed || 0} items`} tone="purple" />
+              <MetricCard icon="♨" label="Viral Potential" value={topOpportunity ? `${Math.round((topOpportunity.opportunity_score || 0) * 100)}%` : null} description={topOpportunity ? `${topOpportunity.trend} opportunity` : 'Waiting for opportunity data'} tone="coral" />
+              <MetricCard icon="♥" label="Engagement" value={stats?.avg_engagement_rate ? `${(stats.avg_engagement_rate * 100).toFixed(1)}%` : null} description="Average across analyzed content" tone="cyan" />
+              <MetricCard icon="◈" label="Content Analyzed" value={fmt(totalVideos)} description={`${stats?.total_channels || 0} creators indexed`} tone="amber" />
             </section>
           )}
 
@@ -121,12 +114,15 @@ export default function Dashboard() {
 
           <section className="dash-lower-grid">
             <OpportunityPanel opportunities={opportunities} loading={loading && !opportunitiesResponse} />
-            <div className="dash-analytics-stack">
-              <TrendDistributionPanel data={trendChartData} />
-              <NicheDistributionPanel data={nicheData} />
-            </div>
+            <PlatformDistributionPanel data={stats?.platform_stats || {}} />
+            <ViralHeatmapPanel />
+          </section>
+          <section className="dash-secondary-grid">
+            <TrendDistributionPanel data={trendChartData} />
+            <NicheDistributionPanel data={nicheData} />
             <InsightSignalsPanel drivers={drivers} health={health} transcriptStats={transcriptStats} />
           </section>
+          <LiveFeedSection trends={trends} opportunities={opportunities} />
         </>
       )}
     </main>
